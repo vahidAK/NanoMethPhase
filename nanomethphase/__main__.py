@@ -1280,7 +1280,7 @@ def main_dma(args):
     out_prefix = out_dir+'/'+(args.out_prefix)
     coverage = args.coverage
     columns = args.columns
-    Rscript = os.path.abspath(args.Rscript)
+    Rscript = args.Rscript #  os.path.abspath(args.Rscript)
     script = os.path.abspath(args.script_file)
     dis_merge = args.dis_merge
     minlen = args.minlen
@@ -1745,7 +1745,7 @@ def diff_methyl_analysis_parser(subparsers):
     sub_dma = subparsers.add_parser(
         "dma",
         description=("Differential Methylation analysis for two group only "
-                     "(to find DMRs using fased frequency results) using DSS "
+                     "(to find DMRs using phased frequency results) using DSS "
                      "R package.\n"))
     sdma_input = sub_dma.add_argument_group("Usage\n"
                                             "DMA using DSS R package for two "
@@ -1792,13 +1792,21 @@ def diff_methyl_analysis_parser(subparsers):
     sdma_input.add_argument("--Rscript", "-rs",
                             action="store",
                             type=str,
-                            required=True,
-                            help="The path to the Rscript function")
+                            required=False,
+                            default="Rscript",
+                            help="The path to a particular instance of "
+                                 "Rscript to use")
     sdma_input.add_argument("--script_file", "-sf",
                             action="store",
                             type=str,
-                            required=True,
-                            help="The path to the R script file")
+                            required=False,
+                            default=os.path.join(os.path.dirname(
+                                                    os.path.realpath(__file__)
+                                                        ),
+                                                 "DSS_DMA.R"),
+                            help="The path to the DSS_DMA.R script file")
+    print(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                       "DSS_DMA.R"))
     sdma_input.add_argument("--out_dir", "-o",
                             action="store",
                             type=str,
@@ -1934,8 +1942,8 @@ def main():
         prog="NanoMethPhase: For phasing Nanopore Reads and Methylation\n",
         description=("\t\t\t\tModules\n"
                      "phase: Phasing reads and Methylation.\n"
-                     "methyl_call_processor: Preparing methylation call file for "
-                     "methylation phasing.\n"
+                     "methyl_call_processor: Preparing methylation call file "
+                     "for methylation phasing.\n"
                      "dma: Differential Methylation analysis for two group "
                      "only (to find DMRs using fased frequency results) using "
                      "DSS R package.\n"))

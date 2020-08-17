@@ -1,4 +1,4 @@
-#! /usr/bin/Rscript 
+#! /usr/bin/env Rscript
 # coding=utf-8
 
 # Copyright (C) 2020  Vahid Akbari
@@ -15,37 +15,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-suppressPackageStartupMessages(library("R.utils"))
-suppressPackageStartupMessages(library("DSS"))
 library(sys)
-#The first argument is first file, second is second file and third is your output name, 
-#forth argument is the  dis.merge in callDMR function, fifth argument is the minlen in callDMR function 
-#and the sixth argument is the minCG in callDMR function. the DMA will be first file vs second file. 
-#So your first file should be case and second shoud be control
+suppressPackageStartupMessages(library("R.utils"))
+if (!require('DSS')) install.packages('DSS')
+suppressPackageStartupMessages(library("DSS"))
+
+#The first argument is first file, second is second file and third is your
+#output name, forth argument is the  dis.merge in callDMR function, fifth
+#argument is the minlen in callDMR function and the sixth argument is the minCG
+#in callDMR function. the DMA will be first file vs second file.  So your first
+#file should be case and second shoud be control
 args <- commandArgs(trailingOnly = TRUE)
 print("######################################################################################################################")
 print("DSS Arguments:")
 print("Case:")
 print(args[1])
-print("Control:") 
+print("Control:")
 print(args[2])
-print("Output:") 
+print("Output:")
 print(args[3])
-print("dis_merge:") 
+print("dis_merge:")
 print(args[4])
-print("min_len") 
+print("min_len")
 print(args[5])
-print("min_CG") 
+print("min_CG")
 print(args[6])
-print("Smoothing_span") 
+print("Smoothing_span")
 print(args[7])
-print("smoothing_flag") 
+print("smoothing_flag")
 print(args[8])
-print("pval_cutoff") 
+print("pval_cutoff")
 print(args[9])
-print("delta") 
+print("delta")
 print(args[10])
-print("pct_sig") 
+print("pct_sig")
 print(args[11])
 print("equal_disp")
 print(args[12])
@@ -103,14 +106,14 @@ DMRegion_results=paste(output,"_callDMR.txt",sep = "")
 print("DMA process started")
 DSObject<- makeBSseqData(input_list,as.vector(unlist(input_vector_list, use.names=FALSE)))
 
-if (sf == "FALSE"){ 
+if (sf == "FALSE"){
   test<- DMLtest(DSObject, group1=as.vector(unlist(input_list_case, use.names=FALSE)),
-                 group2=as.vector(unlist(input_list_control, use.names=FALSE)), equal.disp = ed, 
+                 group2=as.vector(unlist(input_list_control, use.names=FALSE)), equal.disp = ed,
                  smoothing = FALSE)
   }
-if (sf == "TRUE"){ 
+if (sf == "TRUE"){
   test<- DMLtest(DSObject, group1=as.vector(unlist(input_list_case, use.names=FALSE)),
-               group2=as.vector(unlist(input_list_control, use.names=FALSE)), equal.disp = ed, 
+               group2=as.vector(unlist(input_list_control, use.names=FALSE)), equal.disp = ed,
                smoothing = TRUE, smoothing.span = ss)
   }
 write.table(test,DMCpG_results, sep="\t", row.names=F, quote=F)
