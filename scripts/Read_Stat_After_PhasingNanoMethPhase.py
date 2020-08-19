@@ -116,7 +116,8 @@ def main():
                 out_reads.write(filtered+'\t'+
                                 '\t'.join(map(str,all_reads_info[filtered]
                                 +['Filtered']))+'\n')
-    out_reads.close()
+    if args.out_read is not None:
+        out_reads.close()
     print("Chromosome\tAll_passed_reads\tUnassignedReads\tHP1Reads\tHP2Reads\tFilteredReads")
     for chrom,info in final_output.items():
         print(chrom+'\t'+'\t'.join(map(str,info)))

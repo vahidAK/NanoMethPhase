@@ -68,7 +68,8 @@ def getChromsFromBAM(filename):
 def get_base_info(feed_list,
                   alignment_file,
                   map_qual,
-                  chrom):
+                  chrom,
+                  include_supp):
     read_HP_list= list()
     samfile = pysam.AlignmentFile(alignment_file, 'rb')
     for info in feed_list:
@@ -94,38 +95,44 @@ def get_base_info(feed_list,
             pileupcolumn.set_min_base_quality(0)
             if pileupcolumn.pos == position:
                 for pileupread in pileupcolumn.pileups:
-                    if (pileupread.alignment.mapping_quality >= map_qual and 
-                    not pileupread.alignment.is_supplementary):
-                        if pileupread.is_del or pileupread.is_refskip:
+                    if not include_supp:
+                        if (pileupread.alignment.mapping_quality < map_qual or 
+                            pileupread.alignment.is_supplementary):
                             continue
-                        if pileupread.alignment.is_reverse:
-                            strand = "-"
-                        else:
-                            strand = "+"
-                        read_id= pileupread.alignment.query_name
-                        read_len= pileupread.alignment.query_alignment_length
-                        read_start= pileupread.alignment.reference_start
-                        read_end= pileupread.alignment.reference_end
-                        phred= pileupread.alignment.query_qualities[
-                                pileupread.query_position]
-                        read_base= pileupread.alignment.query_sequence[
-                                pileupread.query_position]
-                        read_base= read_base.upper()
-                        key_per_read = (chrom,read_start,read_end,
-                                        read_id,strand,read_len)
-                        val= [position,phred]
-                        if HP == '1|0' and read_base == alt:
-                            read_HP_list.append([(*key_per_read,"HP1"),
-                                        ':'.join(map(str,val))])
-                        elif HP == '1|0' and read_base == ref:
-                            read_HP_list.append([(*key_per_read,"HP2"),
-                                        ':'.join(map(str,val))])
-                        elif HP == '0|1' and read_base == alt:
-                            read_HP_list.append([(*key_per_read,"HP2"),
-                                        ':'.join(map(str,val))])
-                        elif HP == '0|1' and read_base == ref:
-                            read_HP_list.append([(*key_per_read,"HP1"),
-                                        ':'.join(map(str,val))])
+                    else:
+                        if pileupread.alignment.mapping_quality < map_qual:
+                            continue
+                    if pileupread.is_del or pileupread.is_refskip:
+                        continue
+                    if pileupread.alignment.is_reverse:
+                        strand = "-"
+                    else:
+                        strand = "+"
+                    read_id= pileupread.alignment.query_name
+                    read_len= pileupread.alignment.query_alignment_length
+                    read_start= pileupread.alignment.reference_start
+                    read_end= pileupread.alignment.reference_end
+                    phred= pileupread.alignment.query_qualities[
+                            pileupread.query_position]
+                    read_base= pileupread.alignment.query_sequence[
+                            pileupread.query_position]
+                    read_base= read_base.upper()
+                    flag= pileupread.alignment.flag
+                    key_per_read = (chrom,read_start,read_end,
+                                    read_id,strand,flag,read_len)
+                    val= [position,phred]
+                    if HP == '1|0' and read_base == alt:
+                        read_HP_list.append([(*key_per_read,"HP1"),
+                                    ':'.join(map(str,val))])
+                    elif HP == '1|0' and read_base == ref:
+                        read_HP_list.append([(*key_per_read,"HP2"),
+                                    ':'.join(map(str,val))])
+                    elif HP == '0|1' and read_base == alt:
+                        read_HP_list.append([(*key_per_read,"HP2"),
+                                    ':'.join(map(str,val))])
+                    elif HP == '0|1' and read_base == ref:
+                        read_HP_list.append([(*key_per_read,"HP1"),
+                                    ':'.join(map(str,val))])
     return read_HP_list
                         
 
@@ -143,10 +150,6 @@ def bam_info_extractor(read,
     rnext= read.next_reference_name
     pnext= read.next_reference_start
     tlen= read.template_length 
-    if 'chr' not in true_ref_name.lower():
-        ref_name = 'chr'+true_ref_name
-    else:
-        ref_name = true_ref_name  
     cigar = read.cigartuples
     base_qualities = read.query_qualities
     flag = read.flag
@@ -156,20 +159,16 @@ def bam_info_extractor(read,
     ref_len = ""
     if reference is not None:
         try:
-            if fasta.fetch(reference=ref_name,
-                                      start=start,
-                                      end=end):
-                ref_seq = fasta.fetch(reference=ref_name,
-                                      start=start,
-                                      end=end)
-            else:
-                ref_seq = fasta.fetch(reference=ref_name[3:],
-                                      start=start,
-                                      end=end)
+            ref_seq = fasta.fetch(reference=true_ref_name,
+                                  start=start,
+                                  end=end)
         except:
                 warnings.warn("Reference genome sequence was not found "
                               "for this read: {} at this cordinates {}:{}-{}. "
-                              "Skipping the read".format(read_id,ref_name,start,end))
+                              "Skipping the read".format(read_id,
+                                                         true_ref_name,
+                                                         start,
+                                                         end))
     if ((read_seq and cigar and base_qualities) and 
     (cigar != "*" or cigar is not None) and 
                                       base_qualities is not None):
@@ -178,7 +177,7 @@ def bam_info_extractor(read,
         ref_seq= ref_seq.upper()
         ref_len= len(ref_seq)
         all_tags= read.get_tags(with_value_type=True)
-        return (ref_name , true_ref_name , strand , flag , read_id , read_seq , 
+        return (true_ref_name , strand , flag , read_id , read_seq , 
                 read_len , cigar , rnext , pnext , tlen , base_qualities , 
                 start , end , ref_seq , ref_len, all_tags)
     else:
@@ -295,13 +294,13 @@ def outputs(outformat,
     outHP1Sam = outHP2Sam = outHP12BisSam = ""
     outHP22BisSam = outCall1 = outCall2 = outFreq1 = outFreq2 = ""
     if 'bam' in outformat:
-        outHP1Sam = pysam.AlignmentFile(out1+".bam", "w", template=bam)
-        outHP2Sam = pysam.AlignmentFile(out2+".bam", "w", template=bam)
+        outHP1Sam = pysam.AlignmentFile(out1+".bam", "wb", template=bam)
+        outHP2Sam = pysam.AlignmentFile(out2+".bam", "wb", template=bam)
     if 'bam2bis' in outformat:
         outHP12BisSam = pysam.AlignmentFile(out1+"_Converted2Bisulfite.bam",
-                                            "w", template=bam)
+                                            "wb", template=bam)
         outHP22BisSam = pysam.AlignmentFile(out2+"_Converted2Bisulfite.bam",
-                                            "w", template=bam)
+                                            "wb", template=bam)
     if 'methylcall' in outformat:
         outCall1 = open(out1+"_MethylCall.tsv", 'w')
         outCall2 = open(out2+"_MethylCall.tsv", 'w')
@@ -449,8 +448,6 @@ def methcall2bed(readlist,
             if abs(logratio) < callthresh * num_sites:
                 continue
             chrom = line[0]
-            if 'chr' not in chrom.lower():
-                chrom = 'chr'+chrom
             if int(line[9]) > 1:  # Check if the line includes multi-group CpG
                 logratio = float(line[5])/int(line[9])
                 splited_groupIndexes = [(j.start())
@@ -548,8 +545,6 @@ def vcf2dict_phase(vcf, window):
             line_list[3] != "." and
             line_list[4] != "."):
             chrom = line_list[0]
-            if 'chr' not in chrom.lower():
-                chrom = 'chr'+chrom
             pos = int(line_list[1])-1#VCF file is 1-based
             if line_list[9].startswith('1|0') or line_list[9].startswith('0|1'):
                 if window is None:
@@ -581,18 +576,6 @@ def vcf2dict_phase(vcf, window):
                             raise Exception("Given window {} is not valid"
                                             ". Please give a valid window."
                                             "".format(window))
-                        
-#                        
-#                        if line_list[9].startswith('1|0'):
-#                            key1 = (chrom,pos,line_list[4].upper())
-#                            key2 = (chrom,pos,line_list[3].upper())
-#                            hp1set.add(key1)
-#                            hp2set.add(key2)
-#                        if line_list[9].startswith('0|1'):
-#                            key1 = (chrom,pos,line_list[3].upper())
-#                            key2 = (chrom,pos,line_list[4].upper())
-#                            hp1set.add(key1)
-#                            hp2set.add(key2)
     return vcf_dict
 
 
@@ -720,8 +703,8 @@ def main_phase(args):
     if args.vcf is not None:
         perReadinfo= open(out1+"_HP2_PerReadInfo.tsv", 'w')
         perReadinfo.write("#Chromosome\tReadRefStart\tReadRefEnd\tReadID\t"
-                          "Strand\tReadLength\tHaplotype\tNumOfPhasedSNV\t"
-                          "Position:BaseQuality\n")
+                          "Strand\tReadFlag\tReadLength\tHaplotype\t"
+                          "NumOfPhasedSNV\tPosition:BaseQuality\n")
         vcf_file = openfile(vcf)
         vcf_dict = vcf2dict_phase(vcf_file,args.window)
         chrom_list = sorted(list(vcf_dict.keys()))
@@ -743,10 +726,12 @@ def main_phase(args):
                                       ) as pbar:
                     for vcf_info_list in feed_list:
                         p= mp.Pool(len(vcf_info_list))
-                        results= p.starmap(get_base_info,list(zip(vcf_info_list,
+                        results= p.starmap(get_base_info,
+                                           list(zip(vcf_info_list,
                                                     repeat(bam_file),
                                                     repeat(MappingQuality),
-                                                    repeat(chrom))))
+                                                    repeat(chrom),
+                                                    repeat(args.include_supplementary))))
                         p.close()
                         p.join()
                         for result in results:
@@ -788,15 +773,15 @@ def main_phase(args):
         if line.startswith("#"):
             continue
         line= line.rstrip().split('\t')
-        key= tuple(line[3:6])
-        haplotypes= line[8].split(',')
+        key= tuple(line[3:7])
+        haplotypes= line[9].split(',')
         chrom_list.add(line[0])
-        if line[6] == "HP1":
+        if line[7] == "HP1":
             for haplotype in haplotypes:
                 position,phred= haplotype.split(':')
                 if int(phred) >= MinBaseQuality:
                     read_dictHP1[key].append(int(phred))
-        elif line[6] == "HP2":
+        elif line[7] == "HP2":
             for haplotype in haplotypes:
                 position,phred= haplotype.split(':')
                 if int(phred) >= MinBaseQuality:
@@ -835,19 +820,25 @@ def main_phase(args):
                     llr_unmethylated = list()
                     all_read += 1
                     mp_quality = read.mapping_quality
-                    if (read.is_unmapped or mp_quality < MappingQuality or 
-                            read.is_secondary or read.is_supplementary or 
-                            read.is_qcfail or read.is_duplicate):
-                        continue
+                    if not args.include_supplementary:
+                        if (read.is_unmapped or mp_quality < MappingQuality or 
+                                read.is_secondary or read.is_supplementary or 
+                                read.is_qcfail or read.is_duplicate):
+                            continue
+                    else:
+                        if (read.is_unmapped or mp_quality < MappingQuality or 
+                                read.is_secondary or  
+                                read.is_qcfail or read.is_duplicate):
+                            continue
                     high_qual_reads += 1
-                    (ref_name , true_ref_name , strand , flag , read_id , 
+                    (true_ref_name , strand , flag , read_id , 
                      read_seq , read_len , cigar , rnext , pnext , tlen , 
                      base_qualities , start , end , ref_seq , ref_len, 
                                       all_tags) = bam_info_extractor(read,
                                                                      reference,
                                                                      fasta)
                     
-                    key = (read_id,strand,str(read_len))
+                    key = (read_id,strand,str(flag),str(read_len))
                     if (key not in read_dictHP1 and 
                         key not in read_dictHP2):
                         continue
@@ -883,13 +874,13 @@ def main_phase(args):
                             outHP1Sam.write(read)
                         if 'methylcall' in outformat or 'bam2bis' in outformat:
                             try:
-                                records = tb.query(ref_name, start, end)
+                                records = tb.query(true_ref_name, start, end)
                             except:
-#                                warnings.warn("{}:{}-{} does not exist in the "
-#                                              "MethylCallFile."
-#                                              "Skipping it".format(read_id,
-#                                                                       start,
-#                                                                       end))
+                                warnings.warn("{}:{}-{} does not exist in the "
+                                              "MethylCallFile."
+                                              "Skipping it".format(read_id,
+                                                                       start,
+                                                                       end))
                                 continue
                             for record in records:
                                 if read_id == record[4] and strand == record[3]:
@@ -925,8 +916,7 @@ def main_phase(args):
                             if 'methylcall' in outformat:
                                 for key,val in methylcall_dict.items():
                                     outCall1.write('\t'.join(map(str,val))+'\n')
-                            if ('bam2bis' in outformat and 
-                                (unmethylated_sites or methylated_sites)):
+                            if 'bam2bis' in outformat:
                                 h1_bam2bis += 1
                                 read_sam_list.append(['HP1',strand,read_id,
                                                 flag , true_ref_name , start, 
@@ -947,13 +937,13 @@ def main_phase(args):
                             outHP2Sam.write(read)
                         if 'methylcall' in outformat or 'bam2bis' in outformat:
                             try:
-                                records = tb.query(ref_name, start, end)
+                                records = tb.query(true_ref_name, start, end)
                             except:
-#                                warnings.warn("{}:{}-{} does not exist in the "
-#                                              "MethylCallFile."
-#                                              "Skipping it".format(read_id,
-#                                                                       start,
-#                                                                       end))
+                                warnings.warn("{}:{}-{} does not exist in the "
+                                              "MethylCallFile."
+                                              "Skipping it".format(read_id,
+                                                                       start,
+                                                                       end))
                                 continue
                             for record in records:
                                 if read_id == record[4] and strand == record[3]:
@@ -989,8 +979,7 @@ def main_phase(args):
                             if 'methylcall' in outformat:
                                 for key,val in methylcall_dict.items():
                                     outCall2.write('\t'.join(map(str,val))+'\n')
-                            if ('bam2bis' in outformat and 
-                                (unmethylated_sites or methylated_sites)):
+                            if 'bam2bis' in outformat:
                                 h2_bam2bis += 1
                                 read_sam_list.append(['HP2',strand,read_id,
                                                 flag , true_ref_name , start, 
@@ -1055,28 +1044,40 @@ def main_phase(args):
             outHP12BisSam.close()
             outHP22BisSam.close()
             sys.stderr.write("bam2bis output files are ready\n")
-        sys.stderr.write("Job Finished.\n"
-                                     "Number of all reads at processed chroms: {}\n"
-                                     "Number of nonsuplementary/"
-                                     "nonsecondary/notPCRdup/qcPassed"
-                                     " mapped reads with quality more "
-                                     "than {} at processed chroms: {}.\n"
-                                     "Number of reads with at least one"
-                                     " tagged phased SNV: {}\n"
-                                     "Number of HP1 reads: {}\n"
-                                     "Number of HP2 reads: {}\n"
-                                     "Number of HP1 reads converted to WGBS"
-                                     " format: {}\n"
-                                     "Number of HP2 reads converted to WGBS"
-                                     " format: {}\n"
-                                     "".format(all_read,
-                                               MappingQuality,
-                                               high_qual_reads,
-                                               SNV_tagged_reads,
-                                               h1,
-                                               h2,
-                                               h1_bam2bis,
-                                               h2_bam2bis))
+        if not args.include_supplementary:
+            sys.stderr.write("Job Finished.\n"
+                                         "Number of all reads at processed chroms: {}\n"
+                                         "Number of nonsuplementary/"
+                                         "nonsecondary/notPCRdup/qcPassed"
+                                         " mapped reads with quality more "
+                                         "than {} at processed chroms: {}.\n"
+                                         "Number of reads with at least one"
+                                         " tagged phased SNV: {}\n"
+                                         "Number of HP1 reads: {}\n"
+                                         "Number of HP2 reads: {}\n"
+                                         "".format(all_read,
+                                                   MappingQuality,
+                                                   high_qual_reads,
+                                                   SNV_tagged_reads,
+                                                   h1,
+                                                   h2))
+        else:
+            sys.stderr.write("Job Finished.\n"
+                                         "Number of all reads at processed chroms: {}\n"
+                                         "Number of "
+                                         "nonsecondary/notPCRdup/qcPassed"
+                                         " mapped reads with quality more "
+                                         "than {} at processed chroms: {}.\n"
+                                         "Number of reads with at least one"
+                                         " tagged phased SNV: {}\n"
+                                         "Number of HP1 reads: {}\n"
+                                         "Number of HP2 reads: {}\n"
+                                         "".format(all_read,
+                                                   MappingQuality,
+                                                   high_qual_reads,
+                                                   SNV_tagged_reads,
+                                                   h1,
+                                                   h2))
     else:
         sys.stderr.write("There is no phased SNV in your vcf file or "
                                      "Noe reads could be tagged.\n")
@@ -1134,14 +1135,13 @@ def main_bam2bis(args):
     all_read= 0
     bamiter, bam, counts= openalignment(bam_file, args.window)
     outBisbam= pysam.AlignmentFile(out+"_Converted2Bisulfite.bam",
-                                            "w", template=bam)
+                                            "wb", template=bam)
     if args.window is None:
         chroms= sorted(getChromsFromBAM(bam_file))
     else:
         chroms= [args.window]
     for chrom in chroms:
         read_sam_list= list()
-        read_sam_list_check= list()
         bamiter, bam, counts= openalignment(bam_file, chrom)
         description= "Converting reads from {}: ".format(chrom)
         if counts > 0:
@@ -1155,84 +1155,85 @@ def main_bam2bis(args):
                     llr_methylated = list()
                     llr_unmethylated = list()
                     pbar.update(1)
-                    if (read.is_unmapped or mp_quality < MappingQuality or 
-                        read.is_secondary or read.is_supplementary or 
-                        read.is_qcfail or read.is_duplicate):
-                        continue
+                    if not args.include_supplementary:
+                        if (read.is_unmapped or mp_quality < MappingQuality or 
+                                read.is_secondary or read.is_supplementary or 
+                                read.is_qcfail or read.is_duplicate):
+                            continue
+                    else:
+                        if (read.is_unmapped or mp_quality < MappingQuality or 
+                                read.is_secondary or  
+                                read.is_qcfail or read.is_duplicate):
+                            continue
                     high_quality_reads += 1
-                    (ref_name , true_ref_name , strand , flag , read_id , 
+                    (true_ref_name , strand , flag , read_id , 
                      read_seq , read_len , cigar , rnext , pnext , tlen , 
                      base_qualities , start , end , ref_seq , ref_len, 
                                       all_tags) = bam_info_extractor(read,
                                                                      reference,
                                                                      fasta)
-                    check_bam2bis = (read_id,ref_len,ref_name,strand)
-                    if check_bam2bis not in read_sam_list_check:
-                        read_sam_list_check.append(check_bam2bis)
-                        try:
-                            records = tb.query(ref_name, start, end)
-                        except:
+                    try:
+                        records = tb.query(true_ref_name, start, end)
+                    except:
 #                                warnings.warn("{}:{}-{} does not exist in the "
 #                                              "MethylCallFile."
 #                                              "Skipping it".format(read_id,
 #                                                                       start,
 #                                                                       end))
-                            continue
-                        for record in records:
-                            if read_id == record[4] and strand == record[3]:
-                                if record[7] != 'NA':
-                                    methylated_sites += map(int,
-                                                        record[7].split(','))
-                                    llr_methylated += map(float,
-                                                        record[5].split(','))
-                                if record[8] != 'NA':
-                                    unmethylated_sites += map(int,
-                                                        record[8].split(','))
-                                    llr_unmethylated += map(float,
-                                                        record[6].split(','))
-                        methylcall_dict= dict()
-                        for i,j in zip(methylated_sites + 
-                                       unmethylated_sites,
-                                       llr_methylated + 
-                                       llr_unmethylated):
-                            
-                            if (i >= start and i <= end ):
-                                if i not in methylcall_dict:
-                                    methylcall_dict[i]= [record[0], 
-                                                        i, 
-                                                        i+1,
-                                                        strand, 
-                                                        read_id, j]
-                                elif abs(j) > abs(methylcall_dict[i][-1]):
-                                    methylcall_dict[i]= [record[0], 
-                                                        i, 
-                                                        i+1,
-                                                        strand, 
-                                                        read_id, j]
-                        if args.methylation:
-                            for key,val in methylcall_dict.items():
-                                outCall.write('\t'.join(map(str,val))+'\n')
-                        if unmethylated_sites or methylated_sites:
-                            read_sam_list.append(['HP2',strand,read_id,
-                                            flag , true_ref_name , start, 
-                                            mp_quality , ref_len, rnext , 
-                                            pnext , tlen, ref_seq, '*', 
-                                            all_tags,
-                                            [i - start for i in methylcall_dict.keys() 
-                                             if methylcall_dict[i][-1] > 0],
-                                            [i - start for i in methylcall_dict.keys() 
-                                             if methylcall_dict[i][-1] <= 0]])
+                        continue
+                    for record in records:
+                        if read_id == record[4] and strand == record[3]:
+                            if record[7] != 'NA':
+                                methylated_sites += map(int,
+                                                    record[7].split(','))
+                                llr_methylated += map(float,
+                                                    record[5].split(','))
+                            if record[8] != 'NA':
+                                unmethylated_sites += map(int,
+                                                    record[8].split(','))
+                                llr_unmethylated += map(float,
+                                                    record[6].split(','))
+                    methylcall_dict= dict()
+                    for i,j in zip(methylated_sites + 
+                                   unmethylated_sites,
+                                   llr_methylated + 
+                                   llr_unmethylated):
                         
-                        if len(read_sam_list) == (threads * chunk):
-                            converted_reads += len(read_sam_list)
-                            p = mp.Pool(threads)
-                            results = p.map(read2bis, read_sam_list)
-                            p.close()
-                            p.join()
-                            for read in results:
-                                if read is not None:
-                                    alignmentwriter(read, outBisbam)
-                            read_sam_list= list()
+                        if (i >= start and i <= end ):
+                            if i not in methylcall_dict:
+                                methylcall_dict[i]= [record[0], 
+                                                    i, 
+                                                    i+1,
+                                                    strand, 
+                                                    read_id, j]
+                            elif abs(j) > abs(methylcall_dict[i][-1]):
+                                methylcall_dict[i]= [record[0], 
+                                                    i, 
+                                                    i+1,
+                                                    strand, 
+                                                    read_id, j]
+                    if args.methylation:
+                        for key,val in methylcall_dict.items():
+                            outCall.write('\t'.join(map(str,val))+'\n')
+                    read_sam_list.append(['NON',strand,read_id,
+                                    flag , true_ref_name , start, 
+                                    mp_quality , ref_len, rnext , 
+                                    pnext , tlen, ref_seq, '*', 
+                                    all_tags,
+                                    [i - start for i in methylcall_dict.keys() 
+                                     if methylcall_dict[i][-1] > 0],
+                                    [i - start for i in methylcall_dict.keys() 
+                                     if methylcall_dict[i][-1] <= 0]])
+                    if len(read_sam_list) == (threads * chunk):
+                        converted_reads += len(read_sam_list)
+                        p = mp.Pool(threads)
+                        results = p.map(read2bis, read_sam_list)
+                        p.close()
+                        p.join()
+                        for read in results:
+                            if read is not None:
+                                alignmentwriter(read, outBisbam)
+                        read_sam_list= list()
                 else:
                     if read_sam_list:
                         converted_reads += len(read_sam_list)
@@ -1255,15 +1256,26 @@ def main_bam2bis(args):
                                  + [str(val), str(modCall), str(freq)+'\n'])
             outFreq.write(outwrite)
         outFreq.close()
-    sys.stderr.write("Job Finished.\n"
-                     "Number of all reads: {}\n"
-                     "Number of nonsuplementary/"
-                     "nonsecondary/notPCRdup/qcPassed"
-                     " mapped reads with quality more "
-                     "than {}: {}.\n"
-                     "Number of converted reads: {}\n"
-                     "".format(all_read, MappingQuality,
-                               high_quality_reads, converted_reads))
+    if not args.include_supplementary:
+        sys.stderr.write("Job Finished.\n"
+                         "Number of all reads: {}\n"
+                         "Number of nonsuplementary/"
+                         "nonsecondary/notPCRdup/qcPassed"
+                         " mapped reads with quality more "
+                         "than {}: {}.\n"
+                         "Number of converted reads: {}\n"
+                         "".format(all_read, MappingQuality,
+                                   high_quality_reads, converted_reads))
+    else:
+        sys.stderr.write("Job Finished.\n"
+                         "Number of all reads: {}\n"
+                         "Number of "
+                         "nonsecondary/notPCRdup/qcPassed"
+                         " mapped reads with quality more "
+                         "than {}: {}.\n"
+                         "Number of converted reads: {}\n"
+                         "".format(all_read, MappingQuality,
+                                   high_quality_reads, converted_reads))
     
 def main_dma(args):
     """
@@ -1509,9 +1521,9 @@ def phase_parser(subparsers):
                           action="store",
                           type=str,
                           required=False,
-                          default="bam",
+                          default="bam2bis,methylcall",
                           help=("What type of output you want (bam,bam2bis,"
-                                "methylcall). Default is bam."
+                                "methylcall). Default is bam2bis,methylcall."
                                 "bam: outputs phased reads to seperate bam "
                                 "files."
                                 "bam2bis: outputs phased reads to seperate "
@@ -1597,6 +1609,10 @@ def phase_parser(subparsers):
                           default=100,
                           help=("Number of reads send to each proccessor. "
                                 "Default is 100"))
+    sp_input.add_argument("--include_supplementary", "-is",
+                          action="store_true",
+                          required=False,
+                          help="Also include supplementary reads")
     sp_input.add_argument("--overwrite", "-ow",
                           action="store_true",
                           required=False,
@@ -1729,6 +1745,10 @@ def bam2bis_parser(subparsers):
                           default=100,
                           help=("Number of reads send to each proccessor. "
                                 "Default is 100"))
+    sbb_input.add_argument("--include_supplementary", "-is",
+                          action="store_true",
+                          required=False,
+                          help="Also include supplementary reads")
     sbb_input.add_argument("--overwrite", "-ow",
                           action="store_true",
                           required=False,
@@ -1736,8 +1756,7 @@ def bam2bis_parser(subparsers):
     sub_bam2bis.set_defaults(func=main_bam2bis)
 
 
-
-def diff_methyl_analysis_parser(subparsers):
+def dma_parser(subparsers):
     """
     Specific argument parser for analysis of differential methylation
     command.
@@ -1951,7 +1970,7 @@ def main():
                                        help='use -h/--help for help')
     phase_parser(subparsers)
     methyl_call_processor_parser(subparsers)
-    diff_methyl_analysis_parser(subparsers)
+    dma_parser(subparsers)
     bam2bis_parser(subparsers)
     args = parser.parse_args()
     if hasattr(args, 'func'):
