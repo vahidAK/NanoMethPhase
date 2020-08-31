@@ -2,16 +2,16 @@
 # coding=utf-8
 
 # Copyright (C) 2020  Vahid Akbari
- 
+
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3.
- 
+
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
- 
+
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -30,9 +30,10 @@ import os
 import re
 import glob
 import gzip
-import bz2 
+import bz2
 import argparse
 import warnings
+import textwrap
 import subprocess
 import multiprocessing as mp
 import sys
@@ -81,8 +82,8 @@ def get_base_info(feed_list,
                                            position+1,
                                            truncate=True)
             except:
-                sam_pileup= samfile.pileup(chrom[3:], 
-                                           position, 
+                sam_pileup= samfile.pileup(chrom[3:],
+                                           position,
                                            position+1,
                                            truncate=True)
         except:#The cordiniate is not found so ignore it
@@ -96,7 +97,7 @@ def get_base_info(feed_list,
             if pileupcolumn.pos == position:
                 for pileupread in pileupcolumn.pileups:
                     if not include_supp:
-                        if (pileupread.alignment.mapping_quality < map_qual or 
+                        if (pileupread.alignment.mapping_quality < map_qual or
                             pileupread.alignment.is_supplementary):
                             continue
                     else:
@@ -134,7 +135,7 @@ def get_base_info(feed_list,
                         read_HP_list.append([(*key_per_read,"HP1"),
                                     ':'.join(map(str,val))])
     return read_HP_list
-                        
+
 
 def bam_info_extractor(read,
                        reference,
@@ -149,7 +150,7 @@ def bam_info_extractor(read,
     true_ref_name = read.reference_name
     rnext= read.next_reference_name
     pnext= read.next_reference_start
-    tlen= read.template_length 
+    tlen= read.template_length
     cigar = read.cigartuples
     base_qualities = read.query_qualities
     flag = read.flag
@@ -169,17 +170,17 @@ def bam_info_extractor(read,
                                                          true_ref_name,
                                                          start,
                                                          end))
-    if ((read_seq and cigar and base_qualities) and 
-    (cigar != "*" or cigar is not None) and 
+    if ((read_seq and cigar and base_qualities) and
+    (cigar != "*" or cigar is not None) and
                                       base_qualities is not None):
         read_seq = read_seq.upper()
         read_len = read.query_alignment_length
         ref_seq= ref_seq.upper()
         ref_len= len(ref_seq)
         all_tags= read.get_tags(with_value_type=True)
-        return (true_ref_name , strand , flag , read_id , read_seq , 
-                read_len , cigar , rnext , pnext , tlen , base_qualities , 
-                start , end , ref_seq , ref_len, all_tags)
+        return (true_ref_name, strand, flag, read_id, read_seq ,
+                read_len, cigar, rnext, pnext, tlen, base_qualities ,
+                start, end, ref_seq, ref_len, all_tags)
     else:
         warnings.warn("{} does not have a read sequence,CIGAR"
                       ", or base quality information. "
@@ -229,7 +230,7 @@ def outexist_phase(overwrite,
                               "{} already exists. Select "
                               "--overwrite option if you want to overwrite "
                               "it".format(out1+"_HP2_MethylFrequency.tsv"))
-        
+
 
 def outformats_phase(outformat,reference,MethylCallfile):
     '''
@@ -246,8 +247,8 @@ def outformats_phase(outformat,reference,MethylCallfile):
                         "not specify reference file and/or processed"
                         " MethylCallfile. Reference file must be also "
                         "indexed by samtools faidx.")
-    elif ('bam2bis' in outformat and 
-          reference is not None and 
+    elif ('bam2bis' in outformat and
+          reference is not None and
           MethylCallfile is not None):
         if not os.path.isfile(os.path.abspath(MethylCallfile)+".tbi"):
             raise Exception("Could not find index file for methylation call file.")
@@ -281,10 +282,10 @@ def outformats_phase(outformat,reference,MethylCallfile):
         raise TypeError("Please select appropriate output format: "
                         "bam,bam2bis,methylcall. Multiple formats must be "
                         "seperated by comma.")
-    return fasta , tb
-    
+    return fasta, tb
 
-def outputs(outformat, 
+
+def outputs(outformat,
             bam,
             out1,
             out2):
@@ -326,9 +327,9 @@ def outputs(outformat,
 
     return (outHP1Sam, outHP2Sam,outHP12BisSam,outHP22BisSam,
             outCall1,outCall2,outFreq1,outFreq2)
-    
 
-def openalignment(alignment_file, 
+
+def openalignment(alignment_file,
                   window):
     '''
     Opens a bam/sam file and creates bam iterator
@@ -341,12 +342,12 @@ def openalignment(alignment_file,
             if len(window_margin) == 2:
                 window_start = int(window_margin[0])
                 window_end = int(window_margin[1])
-                bamiter = bam.fetch(window_chrom , window_start , window_end)
-                count= bam.count(window_chrom , window_start , window_end)
+                bamiter = bam.fetch(window_chrom, window_start, window_end)
+                count= bam.count(window_chrom, window_start, window_end)
             else:
                 window_start = int(window_margin[0])
-                bamiter = bam.fetch(window_chrom , window_start)
-                count= bam.count(window_chrom , window_start)
+                bamiter = bam.fetch(window_chrom, window_start)
+                count= bam.count(window_chrom, window_start)
         else:
             try:
                 bamiter = bam.fetch(window_chrom)
@@ -357,19 +358,18 @@ def openalignment(alignment_file,
     else:
         bamiter = bam.fetch(until_eof=True)
         count = 0
-        
-    return bamiter , bam , count
+    return bamiter, bam, count
 
 
-def alignmentwriter(result, 
+def alignmentwriter(result,
                     output):
     '''
     Writes the results of converting reads to bisulfite format
     to a bam file
     '''
-    (HP , read_id , flag , true_ref_name , 
-     start, mp_quality , cigar , RNEXT , 
-     PNEXT , TLEN , ref_seq, QUAL, all_tags) = result
+    (HP, read_id, flag, true_ref_name ,
+     start, mp_quality, cigar, RNEXT ,
+     PNEXT, TLEN, ref_seq, QUAL, all_tags) = result
     out_samRead = pysam.AlignedSegment(output.header)
     out_samRead.query_name = read_id
     out_samRead.cigarstring = str(len(ref_seq))+'M'
@@ -421,11 +421,11 @@ def FrequencyCalculator(file_path):
             dict_all[key] += 1
             if float(line[5]) > 0:
                 dict_mod[key] += 1
-    return dict_mod , dict_all
+    return dict_mod, dict_all
 
 
-def methcall2bed(readlist, 
-                 callthresh, 
+def methcall2bed(readlist,
+                 callthresh,
                  motif):
     """
     This function converts nanopolish methylation call file to a bed
@@ -482,8 +482,8 @@ def methcall2bed(readlist,
             if not unmethylated_sites:
                 unmethylated_sites.append('NA')
                 llr_unmethylated.append('NA')
-            append_info= (chrom, 
-                          str(all_positions[0]), 
+            append_info= (chrom,
+                          str(all_positions[0]),
                           str(all_positions[-1]+1),
                             strand, read_id,
                             ','.join(llr_methylated),
@@ -540,8 +540,8 @@ def vcf2dict_phase(vcf, window):
         if line.startswith("#"):
             continue
         line_list = line.rstrip().split('\t')
-        if (len(line_list[3]) == 1 and 
-            len(line_list[4])==1 and 
+        if (len(line_list[3]) == 1 and
+            len(line_list[4])==1 and
             line_list[3] != "." and
             line_list[4] != "."):
             chrom = line_list[0]
@@ -551,12 +551,12 @@ def vcf2dict_phase(vcf, window):
                     vcf_dict[chrom].append((line_list[9].split(':')[0]
                     ,pos,line_list[3].upper(),line_list[4].upper()))
                 elif len(window.split(':')) == 1:
-                    if (chrom == window.split(':')[0] or 
+                    if (chrom == window.split(':')[0] or
                         chrom == 'chr'+window.split(':')[0]):
                         vcf_dict[chrom].append((line_list[9].split(':')[0]
                     ,pos,line_list[3].upper(),line_list[4].upper()))
                 else:
-                    if (chrom == window.split(':')[0] or 
+                    if (chrom == window.split(':')[0] or
                         chrom == 'chr'+window.split(':')[0]):
                         if len(window.split(':')[1].split('-')) == 1:
                             window_start= int(window.split(':')[1])
@@ -609,14 +609,14 @@ def main_methyl_call_processor(args):
     readlist= []
     tqdm_add= 0
     with tqdm(total=all_lines,
-              desc="MethylCallProcessor: " , bar_format=
+              desc="MethylCallProcessor: ", bar_format=
               "{l_bar}{bar} [ Estimated time left: {remaining} ]") as pbar:
         for line in meth:
             tqdm_add += 1
             line = line.rstrip()
             line_info= line.split('\t')
             start= int(line_info[2])
-            if (line_info[4] == prev_readID and 
+            if (line_info[4] == prev_readID and
                 line_info[1] == prev_strand and
                 abs(start -  prev_start) < 100000):
                 prev_readID = line_info[4]
@@ -697,7 +697,7 @@ def main_phase(args):
     out2 = out + '_NanoMethPhase_HP2'
     MethylCallfile = args.methylcallfile
     MappingQuality = args.mapping_quality
-    outformat = args.outformat.lower().split(',')    
+    outformat = args.outformat.lower().split(',')
     fasta, tb= outformats_phase(outformat,reference,MethylCallfile)
     outexist_phase(args.overwrite,out1,out2)# Check if output files exist
     if args.vcf is not None:
@@ -710,14 +710,14 @@ def main_phase(args):
         chrom_list = sorted(list(vcf_dict.keys()))
         for chrom in chrom_list:
             per_read_hp = defaultdict(list)
-            bamiter , bam , count = openalignment(bam_file , chrom)
+            bamiter, bam, count = openalignment(bam_file, chrom)
             if count > 0:
                 feed_list= vcf_dict[chrom]
                 feed_list = [feed_list[x:x+chunk]
-                                     for x in range(0, len(feed_list), 
+                                     for x in range(0, len(feed_list),
                                                     chunk)]
                 feed_list = [feed_list[x:x+threads]
-                                     for x in range(0, len(feed_list), 
+                                     for x in range(0, len(feed_list),
                                                     threads)]
                 description= "Tagging SNVs to reads from {}: ".format(chrom)
                 with tqdm(total=len(feed_list),
@@ -795,7 +795,7 @@ def main_phase(args):
         SNV_tagged_reads= 0
         h1_bam2bis= 0
         h2_bam2bis= 0
-        bamiter , bam_for_write , count = openalignment(bam_file,
+        bamiter, bam_for_write, count = openalignment(bam_file,
                                                         args.window)
         (outHP1Sam, outHP2Sam, outHP12BisSam, outHP22BisSam,
                                    outCall1,outCall2,outFreq1,
@@ -821,25 +821,24 @@ def main_phase(args):
                     all_read += 1
                     mp_quality = read.mapping_quality
                     if not args.include_supplementary:
-                        if (read.is_unmapped or mp_quality < MappingQuality or 
-                                read.is_secondary or read.is_supplementary or 
+                        if (read.is_unmapped or mp_quality < MappingQuality or
+                                read.is_secondary or read.is_supplementary or
                                 read.is_qcfail or read.is_duplicate):
                             continue
                     else:
-                        if (read.is_unmapped or mp_quality < MappingQuality or 
-                                read.is_secondary or  
+                        if (read.is_unmapped or mp_quality < MappingQuality or
+                                read.is_secondary or
                                 read.is_qcfail or read.is_duplicate):
                             continue
                     high_qual_reads += 1
-                    (true_ref_name , strand , flag , read_id , 
-                     read_seq , read_len , cigar , rnext , pnext , tlen , 
-                     base_qualities , start , end , ref_seq , ref_len, 
+                    (true_ref_name, strand, flag, read_id ,
+                     read_seq, read_len, cigar, rnext, pnext, tlen ,
+                     base_qualities, start, end, ref_seq, ref_len,
                                       all_tags) = bam_info_extractor(read,
                                                                      reference,
                                                                      fasta)
-                    
                     key = (read_id,strand,str(flag),str(read_len))
-                    if (key not in read_dictHP1 and 
+                    if (key not in read_dictHP1 and
                         key not in read_dictHP2):
                         continue
                     if key in read_dictHP1 or key in read_dictHP2:
@@ -860,9 +859,9 @@ def main_phase(args):
                         mean_hp2_quals= hp2_quals[0]
                     else:
                         mean_hp2_quals= 0
-                    hp1_mean_count= len([x for x in hp1_quals if 
+                    hp1_mean_count= len([x for x in hp1_quals if
                                          x >= AverageBaseQuality])
-                    hp2_mean_count= len([x for x in hp2_quals if 
+                    hp2_mean_count= len([x for x in hp2_quals if
                                          x >= AverageBaseQuality])
                     if (hp1_count > hp2_count
                             and hp2_count/hp1_count <= hapRatio
@@ -895,38 +894,37 @@ def main_phase(args):
                                         llr_unmethylated += map(float,
                                                             record[6].split(','))
                             methylcall_dict= dict()
-                            for i,j in zip(methylated_sites + 
+                            for i,j in zip(methylated_sites +
                                            unmethylated_sites,
-                                           llr_methylated + 
+                                           llr_methylated +
                                            llr_unmethylated):
-                                
                                 if (i >= start and i <= end ):
                                     if i not in methylcall_dict:
-                                        methylcall_dict[i]= [record[0], 
-                                                            i, 
+                                        methylcall_dict[i]= [record[0],
+                                                            i,
                                                             i+1,
-                                                            strand, 
+                                                            strand,
                                                             read_id, j]
                                     elif abs(j) > abs(methylcall_dict[i][-1]):
-                                        methylcall_dict[i]= [record[0], 
-                                                            i, 
+                                        methylcall_dict[i]= [record[0],
+                                                            i,
                                                             i+1,
-                                                            strand, 
+                                                            strand,
                                                             read_id, j]
                             if 'methylcall' in outformat:
                                 for key,val in methylcall_dict.items():
                                     outCall1.write('\t'.join(map(str,val))+'\n')
                             if 'bam2bis' in outformat:
                                 h1_bam2bis += 1
-                                read_sam_list.append(['HP1',strand,read_id,
-                                                flag , true_ref_name , start, 
-                                                mp_quality , ref_len, rnext , 
-                                                pnext , tlen, ref_seq, '*', 
-                                                all_tags,
-                                                [i - start for i in methylcall_dict.keys() 
-                                                 if methylcall_dict[i][-1] > 0],
-                                                [i - start for i in methylcall_dict.keys() 
-                                                 if methylcall_dict[i][-1] <= 0]])
+                                read_sam_list.append(['HP1', strand, read_id,
+                                    flag, true_ref_name, start,
+                                    mp_quality, ref_len, rnext ,
+                                    pnext, tlen, ref_seq, '*',
+                                    all_tags,
+                                    [i - start for i in methylcall_dict.keys()
+                                        if methylcall_dict[i][-1] > 0],
+                                    [i - start for i in methylcall_dict.keys()
+                                        if methylcall_dict[i][-1] <= 0]])
                     elif (hp2_count > hp1_count
                           and hp1_count/hp2_count <= hapRatio
                           and hp2_count >= minSNV
@@ -942,8 +940,8 @@ def main_phase(args):
                                 warnings.warn("{}:{}-{} does not exist in the "
                                               "MethylCallFile."
                                               "Skipping it".format(read_id,
-                                                                       start,
-                                                                       end))
+                                                                   start,
+                                                                   end))
                                 continue
                             for record in records:
                                 if read_id == record[4] and strand == record[3]:
@@ -958,38 +956,37 @@ def main_phase(args):
                                         llr_unmethylated += map(float,
                                                             record[6].split(','))
                             methylcall_dict= dict()
-                            for i,j in zip(methylated_sites + 
+                            for i,j in zip(methylated_sites +
                                            unmethylated_sites,
-                                           llr_methylated + 
+                                           llr_methylated +
                                            llr_unmethylated):
-                                
                                 if (i >= start and i <= end ):
                                     if i not in methylcall_dict:
-                                        methylcall_dict[i]= [record[0], 
-                                                            i, 
+                                        methylcall_dict[i]= [record[0],
+                                                            i,
                                                             i+1,
-                                                            strand, 
+                                                            strand,
                                                             read_id, j]
                                     elif abs(j) > abs(methylcall_dict[i][-1]):
-                                        methylcall_dict[i]= [record[0], 
-                                                            i, 
+                                        methylcall_dict[i]= [record[0],
+                                                            i,
                                                             i+1,
-                                                            strand, 
+                                                            strand,
                                                             read_id, j]
                             if 'methylcall' in outformat:
                                 for key,val in methylcall_dict.items():
                                     outCall2.write('\t'.join(map(str,val))+'\n')
                             if 'bam2bis' in outformat:
                                 h2_bam2bis += 1
-                                read_sam_list.append(['HP2',strand,read_id,
-                                                flag , true_ref_name , start, 
-                                                mp_quality , ref_len, rnext , 
-                                                pnext , tlen, ref_seq, '*', 
-                                                all_tags,
-                                                [i - start for i in methylcall_dict.keys() 
-                                                 if methylcall_dict[i][-1] > 0],
-                                                [i - start for i in methylcall_dict.keys() 
-                                                 if methylcall_dict[i][-1] <= 0]])
+                                read_sam_list.append(['HP2', strand, read_id,
+                                    flag, true_ref_name, start,
+                                    mp_quality, ref_len, rnext ,
+                                    pnext, tlen, ref_seq, '*',
+                                    all_tags,
+                                    [i - start for i in methylcall_dict.keys()
+                                        if methylcall_dict[i][-1] > 0],
+                                    [i - start for i in methylcall_dict.keys()
+                                        if methylcall_dict[i][-1] <= 0]])
                     if len(read_sam_list) == (threads * chunk):
                         p = mp.Pool(threads)
                         results = p.map(read2bis, read_sam_list)
@@ -1026,7 +1023,7 @@ def main_phase(args):
             for key, val in dict_all.items():
                 modCall = dict_mod[key]
                 freq = modCall/val
-                outwrite = '\t'.join(list(key) + [str(val), 
+                outwrite = '\t'.join(list(key) + [str(val),
                                      str(modCall), str(freq)+'\n'])
                 outFreq1.write(outwrite)
             outFreq1.close()
@@ -1034,7 +1031,7 @@ def main_phase(args):
             for key, val in dict_all.items():
                 modCall = dict_mod[key]
                 freq = modCall/val
-                outwrite = '\t'.join(list(key) + [str(val), 
+                outwrite = '\t'.join(list(key) + [str(val),
                                      str(modCall), str(freq)+'\n'])
                 outFreq2.write(outwrite)
             outFreq2.close()
@@ -1099,7 +1096,6 @@ def main_bam2bis(args):
     fasta = pysam.FastaFile(reference)
     if not os.path.isfile(MethylCallfile+".tbi"):
         raise Exception("Could not find index file for methylation call file.")
-        
     tb = tabix.open(MethylCallfile)
     if args.methylation:
         if not args.overwrite and (os.path.isfile(out+"MethylationCall.tsv") or
@@ -1146,7 +1142,7 @@ def main_bam2bis(args):
         description= "Converting reads from {}: ".format(chrom)
         if counts > 0:
             with tqdm(total=counts,
-                                desc= description) as pbar:        
+                      desc= description) as pbar:
                 for read in bamiter:
                     mp_quality = read.mapping_quality
                     all_read += 1
@@ -1156,22 +1152,22 @@ def main_bam2bis(args):
                     llr_unmethylated = list()
                     pbar.update(1)
                     if not args.include_supplementary:
-                        if (read.is_unmapped or mp_quality < MappingQuality or 
-                                read.is_secondary or read.is_supplementary or 
+                        if (read.is_unmapped or mp_quality < MappingQuality or
+                                read.is_secondary or read.is_supplementary or
                                 read.is_qcfail or read.is_duplicate):
                             continue
                     else:
-                        if (read.is_unmapped or mp_quality < MappingQuality or 
-                                read.is_secondary or  
+                        if (read.is_unmapped or mp_quality < MappingQuality or
+                                read.is_secondary or
                                 read.is_qcfail or read.is_duplicate):
                             continue
                     high_quality_reads += 1
-                    (true_ref_name , strand , flag , read_id , 
-                     read_seq , read_len , cigar , rnext , pnext , tlen , 
-                     base_qualities , start , end , ref_seq , ref_len, 
-                                      all_tags) = bam_info_extractor(read,
-                                                                     reference,
-                                                                     fasta)
+                    (true_ref_name, strand, flag, read_id ,
+                     read_seq, read_len, cigar, rnext, pnext, tlen ,
+                     base_qualities, start, end, ref_seq, ref_len,
+                     all_tags) = bam_info_extractor(read,
+                                                    reference,
+                                                    fasta)
                     try:
                         records = tb.query(true_ref_name, start, end)
                     except:
@@ -1194,36 +1190,35 @@ def main_bam2bis(args):
                                 llr_unmethylated += map(float,
                                                     record[6].split(','))
                     methylcall_dict= dict()
-                    for i,j in zip(methylated_sites + 
+                    for i,j in zip(methylated_sites +
                                    unmethylated_sites,
-                                   llr_methylated + 
+                                   llr_methylated +
                                    llr_unmethylated):
-                        
                         if (i >= start and i <= end ):
                             if i not in methylcall_dict:
-                                methylcall_dict[i]= [record[0], 
-                                                    i, 
+                                methylcall_dict[i]= [record[0],
+                                                    i,
                                                     i+1,
-                                                    strand, 
+                                                    strand,
                                                     read_id, j]
                             elif abs(j) > abs(methylcall_dict[i][-1]):
-                                methylcall_dict[i]= [record[0], 
-                                                    i, 
+                                methylcall_dict[i]= [record[0],
+                                                    i,
                                                     i+1,
-                                                    strand, 
+                                                    strand,
                                                     read_id, j]
                     if args.methylation:
                         for key,val in methylcall_dict.items():
                             outCall.write('\t'.join(map(str,val))+'\n')
-                    read_sam_list.append(['NON',strand,read_id,
-                                    flag , true_ref_name , start, 
-                                    mp_quality , ref_len, rnext , 
-                                    pnext , tlen, ref_seq, '*', 
-                                    all_tags,
-                                    [i - start for i in methylcall_dict.keys() 
-                                     if methylcall_dict[i][-1] > 0],
-                                    [i - start for i in methylcall_dict.keys() 
-                                     if methylcall_dict[i][-1] <= 0]])
+                    read_sam_list.append(['NON', strand, read_id,
+                        flag, true_ref_name, start,
+                        mp_quality, ref_len, rnext ,
+                        pnext, tlen, ref_seq, '*',
+                        all_tags,
+                        [i - start for i in methylcall_dict.keys()
+                            if methylcall_dict[i][-1] > 0],
+                        [i - start for i in methylcall_dict.keys()
+                            if methylcall_dict[i][-1] <= 0]])
                     if len(read_sam_list) == (threads * chunk):
                         converted_reads += len(read_sam_list)
                         p = mp.Pool(threads)
@@ -1276,7 +1271,8 @@ def main_bam2bis(args):
                          "Number of converted reads: {}\n"
                          "".format(all_read, MappingQuality,
                                    high_quality_reads, converted_reads))
-    
+
+
 def main_dma(args):
     """
     This is the DMA module which does differential methylation analysis
@@ -1465,33 +1461,45 @@ def phase_parser(subparsers):
     Specific argument parser for phase command.
     """
     sub_phase = subparsers.add_parser("phase",
+                                      add_help=False,
+                                      help="Phasing reads and Methylation.",
                                       description="Phasing reads and "
-                                      "Methylation\n")
-    sp_input = sub_phase.add_argument_group("INPUT")
-    sp_input.add_argument("--vcf", "-v",
-                          action="store",
-                          type=str,
-                          required=False,
-                          help="The path to the whatshap phased vcf file or"
-                          "if it is your second try and you have per read info"
-                          "file from the first try there is no need to give vcf"
-                          " file, instead give the path to the per read info"
-                          " file using --per_read option which will be "
-                          "significantly faster. If you give both vcf anf per"
-                          " read file, per read file will be ignored")
-    sp_input.add_argument("--per_read", "-pr",
-                          action="store",
-                          type=str,
-                          required=False,
-                          help="If it is your second try and you have per read info"
-                          "file from the first try there is no need to give vcf file"
-                          ", instead give the path to the per read info file."
-                          "This will be significantly faster.")
+                                      "Methylation")
+    sp_input = sub_phase.add_argument_group("required arguments")
     sp_input.add_argument("--bam", "-b",
                           action="store",
                           type=str,
                           required=True,
                           help="The path to the cordinate sorted bam file.")
+    sp_input.add_argument("--output", "-o",
+                          action="store",
+                          type=str,
+                          required=True,
+                          help=("The path to directory and prefix to save "
+                                "files. e.g path/to/directory/prefix"))
+    sp_input = sub_phase.add_argument_group("optional arguments")
+    sp_input.add_argument("-h", "--help",
+                          action="help",
+                          help="show this help message and exit")
+    sp_input.add_argument("--vcf", "-v",
+                          action="store",
+                          type=str,
+                          required=False,
+                          help="The path to the whatshap phased vcf file or "
+                          "if it is your second try and you have per read "
+                          "info file from the first try there is no need to "
+                          "give vcf file, instead give the path to the per "
+                          "read info file using --per_read option which will "
+                          "be significantly faster. If you give both vcf and "
+                          "per read file, per read file will be ignored")
+    sp_input.add_argument("--per_read", "-pr",
+                          action="store",
+                          type=str,
+                          required=False,
+                          help="If it is your second try and you have per "
+                          "read info file from the first try there is no need "
+                          "to give vcf file, instead give the path to the per "
+                          "read info file. This will be significantly faster.")
     sp_input.add_argument("--reference", "-r",
                           action="store",
                           type=str,
@@ -1510,13 +1518,8 @@ def phase_parser(subparsers):
                                 "(methycall output format) to also calculate "
                                 "methylation frequency for each haplotype "
                                 "give the path to the bgziped methylation "
-                                "call file from methyl_call_processor Module."))
-    sp_input.add_argument("--output", "-o",
-                          action="store",
-                          type=str,
-                          required=True,
-                          help=("The path to directory and prefix to save "
-                                "files. e.g path/to/directory/prefix"))
+                                "call file from methyl_call_processor Module."
+                                ))
     sp_input.add_argument("--outformat", "-of",
                           action="store",
                           type=str,
@@ -1577,8 +1580,8 @@ def phase_parser(subparsers):
                                 "decision cannot be made Base on Average bq "
                                 "(e.g. when 10 SNVs of HP1 mapped to a read "
                                 "with average quality of 30, but only one SNV "
-                                "from HP2 mapped to the same read with bq=35)" 
-                                " Then, instead of quality count number of SNVs"
+                                "from HP2 mapped to the same read with bq=35) "
+                                "Then, instead of quality count number of SNVs"
                                 " with quality more than average_base_quality."
                                 " Default is >=20."))
     sp_input.add_argument("--mapping_quality", "-mq",
@@ -1626,14 +1629,12 @@ def methyl_call_processor_parser(subparsers):
     """
     sub_methyl_call_processor = subparsers.add_parser(
         "methyl_call_processor",
-        description=("Preparing methylation call file for methylation "
-                     "phasing\n"))
-    smp_input = sub_methyl_call_processor.add_argument_group(
-        "Usage\n"
-        "NanoMethPhase methyl_call_processor -mc file | sort -k1,1 -k2,2n -k3,3n | "
-        "bgzip > file.bed.gz\n"
-        "and then\n"
-        "tabix -p bed file.bed.gz\n")
+        help="Preparing methylation call file for methylation phasing.",
+        description=("Preparing methylation call file for methylation phasing. "
+                     "Extended usage: nanomethphase methyl_call_processor -mc "
+                     "[FILE] | sort -k1,1 -k2,2n -k3,3n | bgzip > "
+                     "[FILE].bed.gz && tabix -p bed [FILE].bed.gz"))
+    smp_input = sub_methyl_call_processor  # .add_argument_group("optional arguments")
     smp_input.add_argument("--MethylCallfile", "-mc",
                            action="store",
                            type=str,
@@ -1670,16 +1671,20 @@ def methyl_call_processor_parser(subparsers):
                            help=("Number of reads send to each proccessor. "
                                  "Default is 100"))
     sub_methyl_call_processor.set_defaults(func=main_methyl_call_processor)
+    split_help = sub_methyl_call_processor.format_help()
 
 def bam2bis_parser(subparsers):
     """
     Specific argument parser for phase command.
     """
-    sub_bam2bis = subparsers.add_parser("bam2bis",
-                                       description="Convert a bam file to a "
-                                       "bisulfite format for nice visualization"
-                                       " in IGV\n")
-    sbb_input = sub_bam2bis.add_argument_group("INPUT")
+    sub_bam2bis = subparsers.add_parser(
+        "bam2bis",
+        add_help=False,
+        help=("Convert a bam file to a bisulfite format for visualization "
+              "in IGV"),
+        description=("Convert a bam file to a bisulfite format for nice "
+                    "visualization in IGV"))
+    sbb_input = sub_bam2bis.add_argument_group("required arguments")
     sbb_input.add_argument("--bam", "-b",
                           action="store",
                           type=str,
@@ -1705,13 +1710,17 @@ def bam2bis_parser(subparsers):
                           required=True,
                           help=("The path to the output directory and desired"
                                 " prefix."))
+    sbb_input = sub_bam2bis.add_argument_group("optional arguments")
+    sbb_input.add_argument("-h", "--help",
+                          action="help",
+                          help="show this help message and exit")
     sbb_input.add_argument("--window", "-w",
                           action="store",
                           type=str,
                           required=False,
-                          help=("if you want to only convert reads for a region "
-                                "or chromosome. You must insert region like "
-                                "this chr1 or chr1:1000-100000."))
+                          help=("if you want to only convert reads for a "
+                                "region or chromosome. You must insert region "
+                                "like this chr1 or chr1:1000-100000."))
     sbb_input.add_argument("--motif", "-mt",
                           action="store",
                           type=str,
@@ -1763,12 +1772,13 @@ def dma_parser(subparsers):
     """
     sub_dma = subparsers.add_parser(
         "dma",
+        add_help=False,
+        help=("Differential Methylation analysis for two group only (to find  "
+              "DMRs using fased frequency results) using DSS R package."),
         description=("Differential Methylation analysis for two group only "
                      "(to find DMRs using phased frequency results) using DSS "
                      "R package.\n"))
-    sdma_input = sub_dma.add_argument_group("Usage\n"
-                                            "DMA using DSS R package for two "
-                                            "group comparison.")
+    sdma_input = sub_dma.add_argument_group("required arguments")
     sdma_input.add_argument("--case", "-ca",
                             action="store",
                             type=str,
@@ -1788,6 +1798,20 @@ def dma_parser(subparsers):
                                   "must be in the same directory and enter "
                                   "them comma seperates "
                                   "(e.g. file1,file2,file3)"))
+    sdma_input.add_argument("--out_dir", "-o",
+                            action="store",
+                            type=str,
+                            required=True,
+                            help="The path to the output directory")
+    sdma_input.add_argument("--out_prefix", "-op",
+                            action="store",
+                            type=str,
+                            required=True,
+                            help="The prefix for the output files")
+    sdma_input = sub_dma.add_argument_group("optional arguments")
+    sdma_input.add_argument("-h", "--help",
+                          action="help",
+                          help="show this help message and exit")
     sdma_input.add_argument("--columns", "-c",
                             action="store",
                             type=str,
@@ -1824,18 +1848,6 @@ def dma_parser(subparsers):
                                                         ),
                                                  "DSS_DMA.R"),
                             help="The path to the DSS_DMA.R script file")
-    print(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       "DSS_DMA.R"))
-    sdma_input.add_argument("--out_dir", "-o",
-                            action="store",
-                            type=str,
-                            required=True,
-                            help="The path to the output directory")
-    sdma_input.add_argument("--out_prefix", "-op",
-                            action="store",
-                            type=str,
-                            required=True,
-                            help="The prefix for the output files")
     sdma_input.add_argument("--coverage", "-cov",
                             action="store",
                             type=int,
@@ -1957,17 +1969,15 @@ def main():
     Docstring placeholder.
     """
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter,
-        prog="NanoMethPhase: For phasing Nanopore Reads and Methylation\n",
-        description=("\t\t\t\tModules\n"
-                     "phase: Phasing reads and Methylation.\n"
-                     "methyl_call_processor: Preparing methylation call file "
-                     "for methylation phasing.\n"
-                     "dma: Differential Methylation analysis for two group "
-                     "only (to find DMRs using fased frequency results) using "
-                     "DSS R package.\n"))
-    subparsers = parser.add_subparsers(title="\t\t\tModules\n",
-                                       help='use -h/--help for help')
+#        formatter_class=argparse.RawTextHelpFormatter,
+        prog="nanomethphase",
+        description="NanoMethPhase: For phasing Nanopore Reads and "
+                    "Methylation")
+#        description=("phase: Phasing reads and Methylation.\n"
+#                     "methyl_call_processor: Preparing methylation call file "
+#                     "for methylation phasing.\n"
+#                     )
+    subparsers = parser.add_subparsers(title="Modules")
     phase_parser(subparsers)
     methyl_call_processor_parser(subparsers)
     dma_parser(subparsers)
