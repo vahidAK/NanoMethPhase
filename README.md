@@ -5,19 +5,28 @@ Phase long reads and CpG methylations from Oxford Nanopore Technologies.
 
 ## Installation
 
-Using pypi repository
+Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
 ```
 pip install nanomethphase
 ```
 
-Using conda
+Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
-```
-TBD
+It ships with complementary softwares SNVoter, Nanopolish, Clair and WhatsHap.
+
+```bash
+docker pull jmgarant/nanomethphase
+
+# usage example:
+docker run -t jmgarant/nanomethphase nanomethphase
+docker run -t jmgarant/nanomethphase snvoter
+docker run -t jmgarant/nanomethphase nanopolish
+docker run -t jmgarant/nanomethphase clair
+docker run -t jmgarant/nanomethphase whatsapp
 ```
 
-From source
+From [source](https://github.com/vahidAK/NanoMethPhase.git)
 
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
