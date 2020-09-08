@@ -4,13 +4,12 @@ NanoMethPhase
 Phase long reads and CpG methylations from Oxford Nanopore Technologies.
 
 ## Installation
-
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
 ```
 pip install nanomethphase
 ```
-
+**NOTE:** NanoMethPhase needs python 3.7  
 Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
 It ships with complementary softwares SNVoter, Nanopolish, Clair and WhatsHap.
