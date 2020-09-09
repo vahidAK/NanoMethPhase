@@ -160,4 +160,4 @@ For a full list of options and help for each module run:
 
 `nanomethphase <module name> -h`
   
-We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 10Mb of chr21.
+We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.
