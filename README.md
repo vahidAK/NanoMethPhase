@@ -4,13 +4,12 @@ NanoMethPhase
 Phase long reads and CpG methylations from Oxford Nanopore Technologies.
 
 ## Installation
-
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
 ```
 pip install nanomethphase
 ```
-
+**NOTE:** NanoMethPhase needs python 3.7  
 Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
 It ships with complementary softwares SNVoter, Nanopolish, Clair and WhatsHap.
@@ -160,3 +159,5 @@ To findout about different modules run:
 For a full list of options and help for each module run:
 
 `nanomethphase <module name> -h`
+  
+We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.
