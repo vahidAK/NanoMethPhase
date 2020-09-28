@@ -22,7 +22,7 @@ docker run -t jmgarant/nanomethphase nanomethphase
 docker run -t jmgarant/nanomethphase snvoter
 docker run -t jmgarant/nanomethphase nanopolish
 docker run -t jmgarant/nanomethphase clair
-docker run -t jmgarant/nanomethphase whatsapp
+docker run -t jmgarant/nanomethphase whatshap
 ```
 
 From [source](https://github.com/vahidAK/NanoMethPhase.git)
