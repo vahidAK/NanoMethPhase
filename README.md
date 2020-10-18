@@ -12,7 +12,8 @@ pip install nanomethphase
 **NOTE:** NanoMethPhase needs python 3.7  
 Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
-It ships with complementary softwares SNVoter, Nanopolish, Clair and WhatsHap.
+It ships with complementary softwares SNVoter, Nanopolish, Clair, WhatsHap &
+Tabix.
 
 ```bash
 docker pull jmgarant/nanomethphase
@@ -23,6 +24,7 @@ docker run -t jmgarant/nanomethphase snvoter
 docker run -t jmgarant/nanomethphase nanopolish
 docker run -t jmgarant/nanomethphase clair
 docker run -t jmgarant/nanomethphase whatshap
+docker run -t jmgarant/nanomethphase tabix
 ```
 
 From [source](https://github.com/vahidAK/NanoMethPhase.git)
