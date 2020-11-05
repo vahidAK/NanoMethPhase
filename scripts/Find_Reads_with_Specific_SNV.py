@@ -127,8 +127,6 @@ def main():
                 continue
             line=line.rstrip().split('\t')
             chrom= line[0]
-            if 'chr' not in chrom.lower():
-                chrom= 'chr'+chrom
             if not bed_file.endswith(".vcf"):
                 windowinfo= (chrom, int(line[1])-4,int(line[1])+5,int(line[1]),line[2])
             else:
