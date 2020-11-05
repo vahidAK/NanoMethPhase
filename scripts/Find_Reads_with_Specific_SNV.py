@@ -135,7 +135,7 @@ def main():
                 windowinfo= (chrom, int(line[1])-4-1,int(line[1])+5-1,int(line[1])-1,line[4])
             if windowinfo not in window_list:
                 window_list.append(windowinfo)
-                if len(window_list) > chunk:
+                if len(window_list) >= chunk:
                     feed_list.append(window_list)
                     window_list= list()
                 if len(feed_list)== threads:
