@@ -14,6 +14,7 @@ parser.add_argument("--bam", "-b", action="store", type=str,required=True,help="
 parser.add_argument("--reference", "-r", action="store", type=str,required=True, default=None,help="The path to the reference file. File must be indexed by samtools faidx"
                           "give the path to reference file. Fasta file must be already indexed using samtools faidx.")
 parser.add_argument("--mappingQuality", "-mq", action="store", type=int,default= 20,required=False,help="Cutt off for filtering out low quality mapped reads from bam. Default is 20")
+parser.add_argument("--num_snv", "-ns", action="store", type=int,required=False, default=1,help="Number of SNVs a read must have. Default is 1")
 parser.add_argument("--threads", "-t", action="store", type=int,required=False, default=4,help="Number of threads")
 parser.add_argument("--chunk_size", "-rc", action="store", type=int,required=False, default=50,help="Number of reads send to each processes for parrallel processing. Default is 10.\n"
                            "If you do not have enough memory use low numbers.")
@@ -85,6 +86,7 @@ def main():
     window_list=list()
     feed_list= list()
     bed_file= os.path.abspath(args.input)
+    num_snv= args.num_snv
     if not bed_file.endswith(".vcf"):
         bed= open(bed_file)
         next(bed)
@@ -116,6 +118,7 @@ def main():
     print("Chromosome\tWindowStart_ZeroBased\tWindowEnd_ZeroBased\t"
           "Mutation_Pos_ZeroBased\tMutationBase\tWindow\tRefBase\tRead\t"
           "Read_Length\tBasePhred\tStrand")
+    snv_count= defaultdict(int)
     with tqdm(total=len(all_lines),desc="Processing: ",
                       bar_format="{l_bar}{bar} [ Estimated time left: {remaining} ]"
                       ) as pbar:
@@ -129,7 +132,7 @@ def main():
             if not bed_file.endswith(".vcf"):
                 windowinfo= (chrom, int(line[1])-4,int(line[1])+5,int(line[1]),line[2])
             else:
-                windowinfo= (chrom, int(line[1])-4-1,int(line[1])+5-1,int(line[1]),line[4])
+                windowinfo= (chrom, int(line[1])-4-1,int(line[1])+5-1,int(line[1])-1,line[4])
             if windowinfo not in window_list:
                 window_list.append(windowinfo)
                 if len(window_list) > chunk:
@@ -146,7 +149,13 @@ def main():
                         if read_dict is not None:
                             for key,val in read_dict.items():
                                 for read in val:
-                                    print('\t'.join(map(str,key))+'\t'+'\t'.join(map(str,read)))
+                                    snv_count[read[1:3]] += 1
+                    for read_dict in results:
+                        if read_dict is not None:
+                            for key,val in read_dict.items():
+                                for read in val:
+                                    if snv_count[read[1:3]] >= num_snv:
+                                        print('\t'.join(map(str,key))+'\t'+'\t'.join(map(str,read)))
                     
                     pbar.update(1)                    
                     feed_list = []
@@ -162,7 +171,13 @@ def main():
                 if read_dict is not None:
                     for key,val in read_dict.items():
                         for read in val:
-                            print('\t'.join(map(str,key))+'\t'+'\t'.join(map(str,read)))
+                            snv_count[read[1:3]] += 1
+            for read_dict in results:
+                        if read_dict is not None:
+                            for key,val in read_dict.items():
+                                for read in val:
+                                    if snv_count[read[1:3]] >= num_snv:
+                                        print('\t'.join(map(str,key))+'\t'+'\t'.join(map(str,read)))
             pbar.update(1)                    
             feed_list = []
     bed.close()
