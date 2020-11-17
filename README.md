@@ -182,7 +182,7 @@ The headers for methylation frequency files are as follow:
 `nanomethphase dma -c 1,2,4,5,7 -ca <path to output methylation frequency for haplotype1> -co <path to output methylation frequency for haplotype2> -rs <path to executable Rscript> -sf /projects/vakbari_prj/scratch/BitBucket/NanoMethPhase/DSS_DMA.R -o . -op Aicardi_NanoMethPhase_DMA`  
   
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.  
-callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated luci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.
+callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.
 
 To findout about different modules run:
 
