@@ -61,10 +61,24 @@ haplotype methylome via:
 You can select 3 output options:
 
 bam: output phased bam files
-
-methylcall: output phased methylation call and frequency files
-
-bam2bis: output mock whole-genome bisulfite converted bam files
+  
+methylcall: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region). The headers for methylation call files are as follow:  
+**chromosome**: Chromosome name.  
+**start**: Zero-Based start position of CpG.  
+**end**: Zero-Based end position of CpG.  
+**strand**: Strand.  
+**read_name**: Read ID.  
+**log_lik_ratio**: llr from nanopolish given to each CpG as being methylated or not.  
+The headers for methylation frequency files are as follow:  
+**chromosome**: Chromosome name.  
+**start**: Zero-Based start position of CpG.  
+**end**: Zero-Based end position of CpG.  
+**strand**: Strand.  
+**NumOfAllCalls**: Number of all called CpGs.  
+**NumOfModCalls**: Number of all CpGs that called as methylated.  
+**MethylFreq**: Methylation frequency (NumOfModCalls/NumOfAllCalls).  
+  
+bam2bis: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.
 
 # Full Tutorial
 
