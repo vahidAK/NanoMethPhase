@@ -9,11 +9,13 @@ Using [pypi repository](https://pypi.org/project/nanomethphase/)
 ```
 pip install nanomethphase
 ```
-**NOTE:** NanoMethPhase needs python 3.7  
+**NOTE:** NanoMethPhase needs python 3.7
+
 Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
 It ships with complementary softwares SNVoter, Nanopolish, Clair, WhatsHap &
-Tabix.
+Tabix. **The container does not natively support interactive usage**, please
+refer to the workaround below.
 
 ```bash
 docker pull jmgarant/nanomethphase
@@ -25,6 +27,9 @@ docker run -t jmgarant/nanomethphase nanopolish
 docker run -t jmgarant/nanomethphase clair
 docker run -t jmgarant/nanomethphase whatshap
 docker run -t jmgarant/nanomethphase tabix
+
+# workaround for interactive use
+docker run -it jmgarant/nanomethphase bash -il
 ```
 
 From [source](https://github.com/vahidAK/NanoMethPhase.git)
@@ -61,23 +66,23 @@ haplotype methylome via:
 You can select 3 output options:
 
 ***bam***: output phased bam files
-  
-***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:  
-**chromosome**: Chromosome name.  
-**start**: Zero-Based start position of CpG.  
-**end**: Zero-Based end position of CpG.  
-**strand**: Strand.  
-**read_name**: Read ID.  
-**log_lik_ratio**: llr from nanopolish given to each CpG as being methylated or not.  
-The headers for methylation frequency files are as follow:  
-**chromosome**: Chromosome name.  
-**start**: Zero-Based start position of CpG.  
-**end**: Zero-Based end position of CpG.  
-**strand**: Strand.  
-**NumOfAllCalls**: Number of all called CpGs.  
-**NumOfModCalls**: Number of all CpGs that called as methylated.  
-**MethylFreq**: Methylation frequency (NumOfModCalls/NumOfAllCalls).  
-  
+
+***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:
+**chromosome**: Chromosome name.
+**start**: Zero-Based start position of CpG.
+**end**: Zero-Based end position of CpG.
+**strand**: Strand.
+**read_name**: Read ID.
+**log_lik_ratio**: llr from nanopolish given to each CpG as being methylated or not.
+The headers for methylation frequency files are as follow:
+**chromosome**: Chromosome name.
+**start**: Zero-Based start position of CpG.
+**end**: Zero-Based end position of CpG.
+**strand**: Strand.
+**NumOfAllCalls**: Number of all called CpGs.
+**NumOfModCalls**: Number of all CpGs that called as methylated.
+**MethylFreq**: Methylation frequency (NumOfModCalls/NumOfAllCalls).
+
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.
 
 # Full Tutorial
@@ -154,34 +159,35 @@ script to make a mock phased vcf file and use it as input for NanoMethPhase.
 `nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64`
 
 If your are not using called SNVs from nanopore data, and they come from, for
-example, short-read sequencing, we recommend using -mbq 0 in the above code. 
+example, short-read sequencing, we recommend using -mbq 0 in the above code.
 
 You can select 3 output options:
 
 ***bam***: output phased bam files
-  
-***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:  
-**chromosome**: Chromosome name.  
-**start**: Zero-Based start position of CpG.  
-**end**: Zero-Based end position of CpG.  
-**strand**: Strand.  
-**read_name**: Read ID.  
-**log_lik_ratio**: llr from nanopolish given to each CpG as being methylated or not.  
-The headers for methylation frequency files are as follow:  
-**chromosome**: Chromosome name.  
-**start**: Zero-Based start position of CpG.  
-**end**: Zero-Based end position of CpG.  
-**strand**: Strand.  
-**NumOfAllCalls**: Number of all called CpGs.  
-**NumOfModCalls**: Number of all CpGs that called as methylated.  
-**MethylFreq**: Methylation frequency (NumOfModCalls/NumOfAllCalls).  
-  
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.  
 
-### 3-4 Differential Methylation Analysis:  
-`nanomethphase dma -c 1,2,4,5,7 -ca <path to output methylation frequency for haplotype1> -co <path to output methylation frequency for haplotype2> -rs <path to executable Rscript> -sf /projects/vakbari_prj/scratch/BitBucket/NanoMethPhase/DSS_DMA.R -o . -op Aicardi_NanoMethPhase_DMA`  
-  
-We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.  
+***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:
+**chromosome**: Chromosome name.
+**start**: Zero-Based start position of CpG.
+**end**: Zero-Based end position of CpG.
+**strand**: Strand.
+**read_name**: Read ID.
+**log_lik_ratio**: llr from nanopolish given to each CpG as being methylated or not.
+The headers for methylation frequency files are as follow:
+**chromosome**: Chromosome name.
+**start**: Zero-Based start position of CpG.
+**end**: Zero-Based end position of CpG.
+**strand**: Strand.
+**NumOfAllCalls**: Number of all called CpGs.
+**NumOfModCalls**: Number of all CpGs that called as methylated.
+**MethylFreq**: Methylation frequency (NumOfModCalls/NumOfAllCalls).
+
+***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.
+
+### 3-4 Differential Methylation Analysis:
+
+`nanomethphase dma -c 1,2,4,5,7 -ca <path to output methylation frequency for haplotype1> -co <path to output methylation frequency for haplotype2> -rs <path to executable Rscript> -sf /projects/vakbari_prj/scratch/BitBucket/NanoMethPhase/DSS_DMA.R -o . -op Aicardi_NanoMethPhase_DMA`
+
+We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
 callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.
 
 To findout about different modules run:
@@ -191,5 +197,5 @@ To findout about different modules run:
 For a full list of options and help for each module run:
 
 `nanomethphase <module name> -h`
-  
+
 We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.

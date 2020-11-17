@@ -1,49 +1,45 @@
 FROM ubuntu:focal
-# NanoMethPhase & SNVoter
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PATH=/opt/clair/bin:/opt/conda/bin:$PATH
+# apt update & dependencies install
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt update && apt install -y wget gcc git libz-dev build-essential \
-    dirmngr apt-transport-https ca-certificates software-properties-common \
-    python3 python3-pip make python-dev libhdf5-dev libcudart10.1 \
-    && pip3 install --upgrade pip setuptools wheel \
-    && pip3 install nanomethphase \
+RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
+    && apt update && apt upgrade -y \
+    && apt install -y wget gcc git libz-dev build-essential dirmngr \
+    apt-transport-https ca-certificates software-properties-common python3 \
+    python3-pip make python-dev libhdf5-dev libcudart10.1 libssl1.0.0 \
     && apt install -y --no-install-recommends r-base r-cran-biocmanager \
     && apt-get clean \
-    && Rscript -e "BiocManager::install('DSS')" \
+    && Rscript -e "BiocManager::install('DSS')"
+# Clair dir
+WORKDIR /opt/clair
+COPY entrypoint.sh entrypoint.sh
+# NanoMethPhase & SNVoter
+RUN pip3 install nanomethphase \
 # WhatsHap
     && pip3 install whatshap \
-# non-root user
-    && groupadd --gid 5000 newuser \
-    && useradd --home-dir /home/newuser --create-home --uid 5000 \
-        --gid 5000 --shell /bin/sh --skel /dev/null newuser
-USER newuser
 # NanoPolish
-RUN cd /home/newuser \
     && git clone --recursive https://github.com/jts/nanopolish.git \
     && pip3 install -r nanopolish/scripts/requirements.txt \
-    && cd nanopolish && make && cd .. \
-# Clair
-    && cd /home/newuser \
+    && cd nanopolish && make --silent --ignore-errors && cd .. \
+# Clair & Clair-env
     && wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda \
     && rm Miniconda3-latest-Linux-x86_64.sh
-ENV PATH="/home/newuser/miniconda3/bin:${PATH}"
-ARG PATH="/home/newuser/miniconda3/bin:${PATH}"
-RUN conda install -c conda-forge -c bioconda -y python=3.7 clair tabix \
-    && /home/newuser/miniconda3/bin/pypy3 -m ensurepip \
-    && /home/newuser/miniconda3/bin/pypy3 -m pip install \
-        --no-cache-dir intervaltree \
-    && conda init bash \
-    && echo ". /home/newuser/miniconda3/etc/profile.d/conda.sh" >> /home/newuser/.bashrc \
-    && echo "conda activate base" >> /home/newuser/.bashrc \
-    && mkdir /home/newuser/ont && cd /home/newuser/ont \
+RUN conda config --add channels bioconda \
+    && conda config --add channels conda-forge \
+    && conda create -n clair-env -c bioconda -y clair tabix
+RUN echo "source activate clair-env" >> /etc/profile
+ENV PATH=/opt/conda/envs/clair-env/bin:$PATH
+RUN /bin/bash -c ". activate clair-env \
+    && pypy3 -m ensurepip \
+    && pip3 install --upgrade pip setuptools wheel \
+    && pypy3 -m pip install --no-cache-dir intervaltree \
+    && conda deactivate \
+    && mkdir ont && cd ont \
     && wget -q http://www.bio8.cs.hku.hk/clair_models/ont/122HD34.tar \
-    && tar -xf 122HD34.tar && rm 122HD34.tar && cd ../
-# NanoPolish & Clair in path
-USER root
-RUN chmod a+x /home/newuser/miniconda3/bin/clair.py \
-    && ln -rs /home/newuser/miniconda3/bin/clair.py /bin/clair \
-    && chmod a+x /home/newuser/miniconda3/bin/tabix \
-    && ln -rs /home/newuser/miniconda3/bin/tabix /bin/tabix \
-    && chmod a+x /home/newuser/nanopolish/nanopolish \
-    && ln -rs /home/newuser/nanopolish/nanopolish /bin/nanopolish
-ENTRYPOINT . /home/newuser/miniconda3/etc/profile.d/conda.sh
+    && tar -xf 122HD34.tar && rm 122HD34.tar && cd .. \
+    && chmod -R +x /opt \
+    && ln -rs /opt/conda/envs/clair-env/bin/clair.py /bin/clair \
+    && ln -rs /opt/conda/envs/clair-env/bin/tabix /bin/tabix \
+    && ln -rs /opt/clair/nanopolish/nanopolish /bin/nanopolish"
+ENTRYPOINT ["/opt/clair/entrypoint.sh"]
