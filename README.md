@@ -9,7 +9,7 @@ Using [pypi repository](https://pypi.org/project/nanomethphase/)
 ```
 pip install nanomethphase
 ```
-**NOTE:** NanoMethPhase needs python 3.7
+**NOTE:** NanoMethPhase needs python >= 3.7
 
 Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
