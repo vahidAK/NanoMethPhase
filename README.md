@@ -218,7 +218,7 @@ The headers for methylation frequency files are as follow:
 ### 3-4 Differential Methylation Analysis:
 
 ```
-nanomethphase dma -c 1,2,4,5,7 -ca <path_to_output_methylation_frequency_for_haplotype1> -co <path_to_output_methylation_frequency_for_haplotype2> -rs <path_to_executable_Rscript> -sf /projects/vakbari_prj/scratch/BitBucket/NanoMethPhase/DSS_DMA.R -o . -op Aicardi_NanoMethPhase_DMA
+nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -rs <path to executable Rscript> -o <output directory> -op <output Prefix>
 ```
 
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
