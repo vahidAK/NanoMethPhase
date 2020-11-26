@@ -2,14 +2,13 @@ FROM ubuntu:focal
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PATH=/opt/clair/bin:/opt/conda/bin:$PATH
 # apt update & dependencies install
 ARG DEBIAN_FRONTEND=noninteractive
-RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
+RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" \
+    >> /etc/apt/sources.list \
     && apt update && apt upgrade -y \
     && apt install -y wget gcc git libz-dev build-essential dirmngr \
     apt-transport-https ca-certificates software-properties-common python3 \
     python3-pip make python-dev libhdf5-dev libcudart10.1 libssl1.0.0 \
-    && apt install -y --no-install-recommends r-base r-cran-biocmanager \
-    && apt-get clean \
-    && Rscript -e "BiocManager::install('DSS')"
+    && apt-get clean
 # Clair dir
 WORKDIR /opt/clair
 COPY entrypoint.sh entrypoint.sh
@@ -27,7 +26,8 @@ RUN pip3 install nanomethphase \
     && rm Miniconda3-latest-Linux-x86_64.sh
 RUN conda config --add channels bioconda \
     && conda config --add channels conda-forge \
-    && conda create -n clair-env -c bioconda -y clair tabix
+    && conda create -n clair-env -c bioconda -y clair tabix r-sys \
+    bioconductor-dss
 RUN echo "source activate clair-env" >> /etc/profile
 ENV PATH=/opt/conda/envs/clair-env/bin:$PATH
 RUN /bin/bash -c ". activate clair-env \
