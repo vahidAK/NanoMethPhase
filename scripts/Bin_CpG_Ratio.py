@@ -5,7 +5,7 @@ import os
 import pysam
 parser = argparse.ArgumentParser(description="Number of CpG and Ratio At bins")
 parser.add_argument("--reference", "-r", action="store", required=True,type=str,help="")
-parser.add_argument("--bin_size", "-bs", action="store",required=False,default= 3000,type=int,help="Number CpG in interval")
+parser.add_argument("--bin_size", "-bs", action="store",required=False,default= 3000,type=int,help="Bin Length in bp. Default is 3000")
 
 args = parser.parse_args()
 reference= os.path.abspath(args.reference)
