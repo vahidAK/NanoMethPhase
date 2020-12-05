@@ -7,16 +7,16 @@ Table of Contents
 =================
 # [Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)
 # [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)
-## [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
-## [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
-## [dma](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#dma)
-## [bam2bis](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#bam2bis)
+##     [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
+##     [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
+##     [dma](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#dma)
+##     [bam2bis](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#bam2bis)
 # [Quickstart](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#quickstart)
 # [Full Tutorial](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#full-tutorial)
-## [Methylation Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#1--methylation-calling)
-## [Variant Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#2--variant-calling)
-## [SNV Phasing](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
-## [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)
+##     [Methylation Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#1--methylation-calling)
+##     [Variant Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#2--variant-calling)
+##     [SNV Phasing](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
+##     [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)
   
   
 # Installation
