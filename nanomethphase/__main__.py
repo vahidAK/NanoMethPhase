@@ -1477,10 +1477,7 @@ def phase_parser(subparsers):
                           required=True,
                           help=("The path to directory and prefix to save "
                                 "files. e.g path/to/directory/prefix"))
-    sp_input = sub_phase.add_argument_group("optional arguments")
-    sp_input.add_argument("-h", "--help",
-                          action="help",
-                          help="show this help message and exit")
+    sp_input = sub_phase.add_argument_group("one of these two are required arguments")
     sp_input.add_argument("--vcf", "-v",
                           action="store",
                           type=str,
@@ -1500,6 +1497,8 @@ def phase_parser(subparsers):
                           "read info file from the first try there is no need "
                           "to give vcf file, instead give the path to the per "
                           "read info file. This will be significantly faster.")
+    sp_input = sub_phase.add_argument_group("conditional required arguments based"
+                                            " on selected output format(s)")
     sp_input.add_argument("--reference", "-r",
                           action="store",
                           type=str,
@@ -1520,6 +1519,10 @@ def phase_parser(subparsers):
                                 "give the path to the bgziped methylation "
                                 "call file from methyl_call_processor Module."
                                 ))
+    sp_input = sub_phase.add_argument_group("optional arguments")
+    sp_input.add_argument("-h", "--help",
+                          action="help",
+                          help="show this help message and exit")
     sp_input.add_argument("--outformat", "-of",
                           action="store",
                           type=str,
@@ -1544,7 +1547,7 @@ def phase_parser(subparsers):
                           action="store",
                           type=str,
                           required=False,
-                          help=("if you want to only fase read for a region "
+                          help=("if you want to only phase read for a region "
                                 "or chromosome. You must insert region like "
                                 "this chr1 or chr1:1000-100000."))
     sp_input.add_argument("--motif", "-mt",
@@ -1629,19 +1632,25 @@ def methyl_call_processor_parser(subparsers):
     """
     sub_methyl_call_processor = subparsers.add_parser(
         "methyl_call_processor",
-        help="Preparing methylation call file for methylation phasing.",
+        add_help=False,
+        help=("Preparing methylation call file for methylation phasing"
+              " or mock bisulfite conversion of bam file."),
         description=("Preparing methylation call file for methylation phasing. "
                      "Extended usage: nanomethphase methyl_call_processor -mc "
                      "[FILE] | sort -k1,1 -k2,2n -k3,3n | bgzip > "
                      "[FILE].bed.gz && tabix -p bed [FILE].bed.gz"))
-    smp_input = sub_methyl_call_processor  # .add_argument_group("optional arguments")
+    smp_input = sub_methyl_call_processor.add_argument_group("required arguments")
     smp_input.add_argument("--MethylCallfile", "-mc",
                            action="store",
                            type=str,
-                           required=False,
+                           required=True,
                            default=None,
                            help=("The path to the nanopolish methylation call "
                                  "file from."))
+    smp_input = sub_methyl_call_processor.add_argument_group("optional arguments")
+    smp_input.add_argument("-h", "--help",
+                          action="help",
+                          help="show this help message and exit")
     smp_input.add_argument("--callThreshold", "-ct",
                            action="store",
                            type=float,
@@ -1671,7 +1680,7 @@ def methyl_call_processor_parser(subparsers):
                            help=("Number of reads send to each proccessor. "
                                  "Default is 100"))
     sub_methyl_call_processor.set_defaults(func=main_methyl_call_processor)
-    split_help = sub_methyl_call_processor.format_help()
+
 
 def bam2bis_parser(subparsers):
     """
@@ -1774,7 +1783,7 @@ def dma_parser(subparsers):
         "dma",
         add_help=False,
         help=("Differential Methylation analysis for two group only (to find  "
-              "DMRs using fased frequency results) using DSS R package."),
+              "DMRs using phased frequency results) using DSS R package."),
         description=("Differential Methylation analysis for two group only "
                      "(to find DMRs using phased frequency results) using DSS "
                      "R package.\n"))
@@ -1978,8 +1987,8 @@ def main():
 #                     "for methylation phasing.\n"
 #                     )
     subparsers = parser.add_subparsers(title="Modules")
-    phase_parser(subparsers)
     methyl_call_processor_parser(subparsers)
+    phase_parser(subparsers)
     dma_parser(subparsers)
     bam2bis_parser(subparsers)
     args = parser.parse_args()
