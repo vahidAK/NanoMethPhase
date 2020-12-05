@@ -11,7 +11,6 @@ Table of Contents
   * [Using pip](https://github.com/vahidAK/NanoMethPhase#using-pip)
   * [Using docker](https://github.com/vahidAK/NanoMethPhase#using-docker)
   * [From source](https://github.com/vahidAK/NanoMethPhase#from-source)
-  * [Using conda](https://github.com/vahidAK/NanoMethPhase#using-conda)
 * **[NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)**
   * [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
   * [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
@@ -26,7 +25,17 @@ Table of Contents
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation
-**NOTE:** NanoMethPhase needs python >= 3.7
+**NOTE:** We recommend first making a dedicated environment for NanoMethPhase with all dependencies in ```envs/environment.yaml``` file installed and then install NanoMethPhase using pip or use it by cloning the got repo and using it from source.  
+You can make the conda and and install all dependencies by running these lines of codes:  
+Creating a dedicated conda environment
+
+Environment file available in the
+[git repository](https://github.com/vahidAK/NanoMethPhase)
+
+```
+git clone https://github.com/vahidAK/NanoMethPhase.git
+conda env create -f NanoMethPhase/envs/environment.yaml
+```
 ## Using pip
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
@@ -61,17 +70,6 @@ From [source](https://github.com/vahidAK/NanoMethPhase.git)
 git clone https://github.com/vahidAK/NanoMethPhase.git
 cd NanoMethPhase
 ./nanomethphase.py
-```
-
-## Using conda
-Creating a dedicated conda environment
-
-Environment file available in the
-[git repository](https://github.com/vahidAK/NanoMethPhase)
-
-```
-git clone https://github.com/vahidAK/NanoMethPhase.git
-conda env create -f NanoMethPhase/envs/environment.yaml
 ```
 # NanoMethPhase Modules
 ## methyl_call_processor: 
