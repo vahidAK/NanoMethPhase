@@ -49,7 +49,25 @@ Environment file available in the
 git clone https://github.com/vahidAK/NanoMethPhase.git
 conda env create -f NanoMethPhase/envs/environment.yaml
 ```
+# NanoMethPhase Modules
+## methyl_call_processor: 
+Preparing methylation call file for methylation phasing.  
+```
 
+```  
+## phase:  
+Phasing reads and CpG Methylation data to the coresponding haplotypes.  
+```
+
+```  
+## dma:
+To perform differential Methylation analysis for two group comparison. To detect differentially methylated regions between haplotypes.  
+```
+```  
+## bam2bis:
+Convert a bam file to a mock whole-genome bisulfite sequencing format for visualization in IGV.  
+```
+```  
 # Quickstart
 
 If you have your methylation call data and phased vcf file you can get the
