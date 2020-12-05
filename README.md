@@ -1,4 +1,4 @@
-NanoMethPhase
+![](docs/images/NanoMethPhase.png)
 =============
 **Phase long reads and CpG methylations from Oxford Nanopore Technologies**  
   
