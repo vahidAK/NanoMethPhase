@@ -34,7 +34,7 @@ conda env create -f NanoMethPhase/envs/environment.yaml
 conda activate nanomethphase
 ```
 Now you can install NanoMethPhase using pip or use it from source in the dedicated environment with all dependencies installed.  
-## Using [pypi repository](https://pypi.org/project/nanomethphase/)
+## Using [pypi repository](https://pypi.org/project/nanomethphase/) (pip)
 
 ```
 pip install nanomethphase
