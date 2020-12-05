@@ -19,7 +19,7 @@ Table of Contents
   * [Variant Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#2--variant-calling)
   * [SNV Phasing](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
   * [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)  
-
+* **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
