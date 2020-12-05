@@ -8,6 +8,10 @@ Table of Contents
 =================
 
 * **[Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)**
+  * [Using pip](https://github.com/vahidAK/NanoMethPhase#using-pip)
+  * [Using docker](https://github.com/vahidAK/NanoMethPhase#using-docker)
+  * [From source](https://github.com/vahidAK/NanoMethPhase#from-source)
+  * [Using conda](https://github.com/vahidAK/NanoMethPhase#using-conda)
 * **[NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)**
   * [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
   * [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
