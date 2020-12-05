@@ -5,8 +5,9 @@ Phase long reads and CpG methylations from Oxford Nanopore Technologies.
   
 Table of Contents
 =================
-# [Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)
-# [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)
+
+**[Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)**
+**[NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)**
 ##     [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
 ##     [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
 ##     [dma](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#dma)
@@ -17,7 +18,7 @@ Table of Contents
 ##     [Variant Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#2--variant-calling)
 ##     [SNV Phasing](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
 ##     [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)
-  
+
   
 # Installation
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
