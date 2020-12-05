@@ -120,7 +120,7 @@ NOTE: Fastqs must be merged to a single file
 nanopolish index -d /path/to/fast5s_directory/.fastq
 ```
 
-### 2-1 Methylation calling for CpG from each read:
+### 1-2 Methylation calling for CpG from each read:
 
 ```
 nanopolish call-methylation -t <number_of_threads> -q cpg -r /path/to/fastq_fromstep-1/fastq.fastq -b /path/to/sorted_and_indexed/bam.bam -g /path/to/reference.fa > /path/to/MethylationCall.tsv
@@ -171,13 +171,13 @@ script to make a mock phased vcf file and use it as input for NanoMethPhase.
 
 ## 4- Detecting Haplotype Methylome
 
-### 1-4 First you need to phase process methylation call file from Nanopolish.
+### 4-1 First you need to phase process methylation call file from Nanopolish.
 
 ```
 nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -k2,2n -k3,3n | bgzip > MethylationCall.bed.gz && tabix -p bed MethylationCall.bed.gz
 ```
 
-### 2-4 Getting haplotype methylome:
+### 4-2 Getting haplotype methylome:
 
 ```
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
@@ -215,7 +215,7 @@ The headers for methylation frequency files are as follow:
 
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.
 
-### 3-4 Differential Methylation Analysis:
+### 4-3 Differential Methylation Analysis:
 
 ```
 nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -rs <path to executable Rscript> -o <output directory> -op <output Prefix>
