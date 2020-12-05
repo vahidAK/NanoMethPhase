@@ -25,12 +25,13 @@ Table of Contents
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation
-**NOTE:** We recommend first making a dedicated environment for NanoMethPhase with all dependencies in [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) file installed and then activate the environment and install NanoMethPhase using pip or you can clone the git repo and use it from source.  
+**NOTE:** We recommend first making a dedicated environment for NanoMethPhase with all dependencies in [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) file installed. Then activate the environment and install NanoMethPhase using pip or you can clone the git repo and use it from source.  
 You can make the conda environment and install all dependencies by running these lines of codes:  
 
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
 conda env create -f NanoMethPhase/envs/environment.yaml
+conda activate nanomethphase
 ```
 Now you can install NanoMethPhase using pip or use it from source in the dedicated environment with all dependencies installed.  
 ## Using pip
