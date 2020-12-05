@@ -51,7 +51,7 @@ conda env create -f NanoMethPhase/envs/environment.yaml
 ```
 # NanoMethPhase Modules
 ## methyl_call_processor: 
-Preparing methylation call file for methylation phasing.  
+Preparing methylation call file for methylation phasing or conversion of a bam file to whole genome bisulfite sequencing format for visualization in IGV.  
 ```
 usage: nanomethphase methyl_call_processor --MethylCallfile METHYLCALLFILE
                                            [-h]
