@@ -22,13 +22,14 @@ Table of Contents
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation
+**NOTE:** NanoMethPhase needs python >= 3.7
+## Using pip
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
 ```
 pip install nanomethphase
 ```
-**NOTE:** NanoMethPhase needs python >= 3.7
-
+## Using docker
 Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
 It ships with complementary softwares SNVoter, Nanopolish, Clair, WhatsHap &
@@ -49,7 +50,7 @@ docker run -t jmgarant/nanomethphase tabix
 # workaround for interactive use
 docker run -it jmgarant/nanomethphase bash -il
 ```
-
+## From source
 From [source](https://github.com/vahidAK/NanoMethPhase.git)
 
 ```
@@ -58,7 +59,8 @@ cd NanoMethPhase
 ./nanomethphase.py
 ```
 
-## Creating a dedicated conda environment
+## Using conda
+Creating a dedicated conda environment
 
 Environment file available in the
 [git repository](https://github.com/vahidAK/NanoMethPhase)
