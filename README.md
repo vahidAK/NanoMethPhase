@@ -34,15 +34,13 @@ conda env create -f NanoMethPhase/envs/environment.yaml
 conda activate nanomethphase
 ```
 Now you can install NanoMethPhase using pip or use it from source in the dedicated environment with all dependencies installed.  
-## Using pip
-Using [pypi repository](https://pypi.org/project/nanomethphase/)
+## Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
 ```
 pip install nanomethphase
 ```
 
-## From source
-From [source](https://github.com/vahidAK/NanoMethPhase.git)
+## From [source](https://github.com/vahidAK/NanoMethPhase.git)
 
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
@@ -50,8 +48,7 @@ cd NanoMethPhase
 ./nanomethphase.py
 ```
 
-## Using docker
-Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
+## Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
 It ships with complementary softwares SNVoter, Nanopolish, Clair, WhatsHap &
 Tabix. **The container does not natively support interactive usage**, please
