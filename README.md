@@ -1,7 +1,8 @@
 NanoMethPhase
 =============
 
-Phase long reads and CpG methylations from Oxford Nanopore Technologies.
+Phase long reads and CpG methylations from Oxford Nanopore Technologies.  
+![](docs/images/phased_IGV.png)
 
 Table of Contents
 =================
