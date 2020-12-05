@@ -6,7 +6,7 @@ Phase long reads and CpG methylations from Oxford Nanopore Technologies.
 Table of Contents
 =================
 
-**[Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)**
+****[Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)****  
 **[NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)**
 ##     [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
 ##     [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
