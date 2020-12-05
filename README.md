@@ -58,7 +58,7 @@ cd NanoMethPhase
 ./nanomethphase.py
 ```
 
-# Creating a dedicated conda environment
+## Creating a dedicated conda environment
 
 Environment file available in the
 [git repository](https://github.com/vahidAK/NanoMethPhase)
