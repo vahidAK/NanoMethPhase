@@ -2,8 +2,24 @@ NanoMethPhase
 =============
 
 Phase long reads and CpG methylations from Oxford Nanopore Technologies.
-
-## Installation
+  
+Table of Contents
+=================
+# [Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)
+# [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)
+## [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
+## [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
+## [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#dma)
+## [NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#bam2bis)
+# [Quickstart](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#quickstart)
+# [Full Tutorial](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#full-tutorial)
+## [Methylation Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#1--methylation-calling)
+## [Variant Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#2--variant-calling)
+## [SNV Phasing](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
+## [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)
+  
+  
+# Installation
 Using [pypi repository](https://pypi.org/project/nanomethphase/)
 
 ```
@@ -40,7 +56,7 @@ cd NanoMethPhase
 ./nanomethphase.py
 ```
 
-## Creating a dedicated conda environment
+# Creating a dedicated conda environment
 
 Environment file available in the
 [git repository](https://github.com/vahidAK/NanoMethPhase)
