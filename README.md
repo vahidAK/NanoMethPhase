@@ -169,7 +169,7 @@ optional arguments:
   --motif MOTIF, -mt MOTIF
                         The motif you called methylation for (cpg), Currently
                         just cpg.
-  --hapratio HAPRATIO, -hr1 HAPRATIO
+  --hapratio HAPRATIO, -hr HAPRATIO
                         0-1 .The threshold ratio between haplotype to tag as
                         H1 or H2. Default is <= 0.7
   --min_base_quality MIN_BASE_QUALITY, -mbq MIN_BASE_QUALITY
