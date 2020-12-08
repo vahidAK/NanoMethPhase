@@ -402,7 +402,25 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.
+***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.  
+  
+
+**NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
+  
+| **Shorten**             | **Description** |
+| ----------------------: | ----------------------------------------------------------------------------------------------------------------------- |
+| chromosome              | Chromosome that read mapped to.                                                                                         |
+| ReadRefStart            | Zero-Based start position where the read mapped.                                                                        |
+| ReadRefEnd              | Zero-Based end position where the read mapped.                                                                          |
+| ReadID                  | Read ID.                                                                                                                |
+| strand                  | Strand.                                                                                                                 |
+| ReadFlag                | Bitwise flag of the read.                                                                                               |
+| ReadLength              | The length of mapped read.                                                                                              |
+| Haplotype               | Haplotype status of SNVs mapped to the read (for each read SNVs from each haplotype will be written in separate lines). |
+| NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
+| Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
+                       
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols etc.  
 
 # Full Tutorial
 
