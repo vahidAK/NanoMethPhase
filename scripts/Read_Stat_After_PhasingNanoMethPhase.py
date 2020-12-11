@@ -17,6 +17,8 @@ parser.add_argument("--min_base_quality", "-mbq", action="store", type=int,requi
 parser.add_argument("--mappingQuality", "-mq", action="store", type=int,default= 20,required=False,help="Cutt off for filtering out low quality mapped reads from bam. Default is 20")
 parser.add_argument("--out_read", "-or", action="store", type=str,required=False,help="If you wish to also output read IDs and category as well give the path to the output "
                     "fo this file. Note: main stats will be output to the stdout")
+parser.add_argument("--include_Supplementary", "-is", action="store_true",required=False,help="Do not discard supplementary reads")
+
 args = parser.parse_args()
 
 def main():
@@ -39,12 +41,10 @@ def main():
     for read in bamiter:
         mp_quality = read.mapping_quality
         if (read.is_unmapped or mp_quality < mq or 
-            read.is_secondary or read.is_supplementary or 
+            read.is_secondary or (not args.include_Supplementary and read.is_supplementary) or 
             read.is_qcfail or read.is_duplicate):
             continue
         ref_name = str(read.reference_name)
-        if 'chr' not in ref_name.lower():
-            ref_name = 'chr'+ref_name
         read_id= read.query_name
         all_reads[ref_name].append(read_id)
         if args.out_read is not None:
@@ -62,17 +62,11 @@ def main():
     bamiter = bam.fetch(until_eof=True)
     for read in bamiter:
         ref_name = str(read.reference_name)
-        if 'chr' not in ref_name.lower():
-            ref_name = 'chr'+ref_name
- 
         HP1_reads[ref_name].append(read.query_name)
     bam = pysam.AlignmentFile(HP2, 'rb')
     bamiter = bam.fetch(until_eof=True)
     for read in bamiter:
         ref_name = str(read.reference_name)
-        if 'chr' not in ref_name.lower():
-            ref_name = 'chr'+ref_name
- 
         HP2_reads[ref_name].append(read.query_name)
     with open(per_read) as info:
         for line in info:
@@ -81,9 +75,9 @@ def main():
             line= line.rstrip().split("\t")
             read_id= line[3]
             chrom= line[0]
-            info_line= line[8].split(',')
+            info_line= line[9].split(',')
             for pos_phred in info_line:
-                pos,phred= pos_phred.split(':')[0:2]
+                pos,phred= pos_phred.split(':')
                 if int(phred) >= mbq:
                     assigned_reads[chrom].append(read_id)
                     break
