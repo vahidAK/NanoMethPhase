@@ -938,7 +938,7 @@ def main_phase(args):
                                 records = tb.query(true_ref_name, start, end)
                             except:
                                 warnings.warn("{}:{}-{} does not exist in the "
-                                              "MethylCallFile."
+                                              "MethylCallFile. This read might not present any detected methylation."
                                               "Skipping it".format(read_id,
                                                                    start,
                                                                    end))
@@ -1172,7 +1172,7 @@ def main_bam2bis(args):
                         records = tb.query(true_ref_name, start, end)
                     except:
 #                                warnings.warn("{}:{}-{} does not exist in the "
-#                                              "MethylCallFile."
+#                                              "MethylCallFile.This read might not present any detected methylation."
 #                                              "Skipping it".format(read_id,
 #                                                                       start,
 #                                                                       end))
