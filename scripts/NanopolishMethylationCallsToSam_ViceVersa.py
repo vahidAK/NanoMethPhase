@@ -65,9 +65,9 @@ if args.tsvTosam:
                 
                 print('\t'.join(outwrite))
 
-print("chromosome\tstrand\tstart\tend\tread_name\tlog_lik_ratio\tlog_lik_methylated"
-      "\tlog_lik_unmethylated\tnum_calling_strands\tnum_motifs\tsequence")
 if args.samTotsv:
+    print("chromosome\tstrand\tstart\tend\tread_name\tlog_lik_ratio\tlog_lik_methylated"
+      "\tlog_lik_unmethylated\tnum_calling_strands\tnum_motifs\tsequence")
     bam=pysam.AlignmentFile(input_file, 'rb')
     bamiter= bam.fetch(until_eof=True)
     for read in bamiter:
