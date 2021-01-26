@@ -5,9 +5,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" \
     >> /etc/apt/sources.list \
     && apt update && apt upgrade -y \
-    && apt install -y wget gcc git libz-dev build-essential dirmngr \
-    apt-transport-https ca-certificates software-properties-common python3 \
-    python3-pip make python-dev libhdf5-dev libcudart10.1 libssl1.0.0 \
+    && apt install -y --no-install-recommends \
+    wget gcc git libz-dev build-essential dirmngr apt-transport-https \
+    ca-certificates software-properties-common python3 python3-pip make \
+    python-dev libhdf5-dev libcudart10.1 libssl1.0.0 \
     && apt-get clean
 # Clair dir
 WORKDIR /opt/clair
@@ -26,8 +27,9 @@ RUN pip3 install nanomethphase \
     && rm Miniconda3-latest-Linux-x86_64.sh
 RUN conda config --add channels bioconda \
     && conda config --add channels conda-forge \
-    && conda create -n clair-env -c bioconda -y clair tabix r-sys \
-    bioconductor-dss
+    && conda create -n clair-env -c bioconda -y \
+    clair tabix r-sys bioconductor-dss \
+    && conda clean --all
 RUN echo "source activate clair-env" >> /etc/profile
 ENV PATH=/opt/conda/envs/clair-env/bin:$PATH
 RUN /bin/bash -c ". activate clair-env \
