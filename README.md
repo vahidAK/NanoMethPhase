@@ -558,7 +558,7 @@ The headers for methylation frequency files are as follow:
 | NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols etc.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different thresholds etc.  
   
 ### 4-3 Differential Methylation Analysis:
 
