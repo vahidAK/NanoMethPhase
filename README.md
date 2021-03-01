@@ -425,7 +425,9 @@ The headers for methylation frequency files are as follow:
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
 Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols etc.  
-
+  
+  
+**NOTE:** Currently, NanoMethPhase requires a vcf file in which phase information of SNVs indicated by "|" (e.g. 0|1 or 1|0). 
 # Full Tutorial
 
 In order to get the phased methylome you also need the following third-party
@@ -499,6 +501,8 @@ or
 [Trio_To_PhaseVCF_4MaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
 script to make a mock phased vcf file and use it as input for NanoMethPhase.
 
+  
+**NOTE:** Currently, NanoMethPhase requires a vcf file in which phase information of SNVs indicated by "|" (e.g. 0|1 or 1|0).
 ## 4- Detecting Haplotype Methylome
 
 ### 4-1 First you need to phase process methylation call file from Nanopolish.
