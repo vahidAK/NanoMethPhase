@@ -367,13 +367,13 @@ optional arguments:
 If you have your methylation call data and phased vcf file you can get the
 haplotype methylome via:
 
-1- Processing and indexing methylation call file
+**1- Processing and indexing methylation call file**
 
 ```
 nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -k2,2n -k3,3n | bgzip > MethylationCall.bed.gz && tabix -p bed MethylationCall.bed.gz
 ```
 
-2- Getting haplotype methylome:
+**2- Getting haplotype methylome:**
 
 ```
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
@@ -428,6 +428,16 @@ Having this file allow you to use it instead of the vcf file which improves the 
   
   
 **NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1)  
+  
+**3- Getting differentially methylated regions between haplotypes:**  
+
+```
+nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -o <output directory> -op <output Prefix>
+```
+
+We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
+callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.  
+
 # Full Tutorial
 
 In order to get the phased methylome you also need the following third-party
