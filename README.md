@@ -1,7 +1,7 @@
 ![](docs/images/NanoMethPhase.png)
 =============
 **Phase long reads and CpG methylations from Oxford Nanopore Technologies**  
-Akbari, V., Garant, JM., O’Neill, K. et al. Megabase-scale methylation phasing using nanopore long reads and NanoMethPhase. Genome Biol 22, 68 (2021).
+**Citation:** Akbari, V., Garant, JM., O’Neill, K. et al. Megabase-scale methylation phasing using nanopore long reads and NanoMethPhase. Genome Biol 22, 68 (2021).
 Access [here](https://doi.org/10.1186/s13059-021-02283-5)  
   
   
