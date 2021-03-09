@@ -30,5 +30,7 @@ if [[ -n "$1" && -n "$2" && -n "$3" && -n "$4" ]]; then
 else
 	echo -e "Please insert arguments:\n
 	First argument is maternal's vcf Second is paternal's vcf, third is child's vcf forth is output prefixt.
-	Note: there will be no filtering step to keep high quality Passed variants, and you need to do that afterwards"
+	Example: Trio_To_PhaseVCF_4FemaleChild.sh Maternal.vcf Paternal.vcf Child.vcf Output
+	Note: there will be no filtering step to keep high quality Passed variants. If you wish to filterout low quality
+	variants you need to already filtered your vcf files or you need to do that afterwards on the output result."
 fi
