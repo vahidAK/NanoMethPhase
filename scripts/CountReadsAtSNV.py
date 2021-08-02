@@ -86,7 +86,7 @@ def main():
                          for x in range(0, len(all_lines), threads)]
     vcf.close()
     vcf= open(vcf_file)
-    print("Chromosome\tMutation_Pos_ZeroBased\tRef_Base\tMutationBase\t"
+    print("Chromosome\tSNV_Pos_ZeroBased\tRef_Base\tMutationBase\t"
           "RefCount\tAltCount")
     allelic_count_ref= defaultdict(list)
     allelic_count_alt= defaultdict(list)
