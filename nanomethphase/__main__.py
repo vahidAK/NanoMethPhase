@@ -759,8 +759,9 @@ def main_phase(args):
                                               '\t'+str(len(val))+
                                               '\t'+','.join(val)+'\n')
             else:
-                warnings.warn("{} does not have any mapped reads in alignment, "
-                              "file. Skipping it.".format(chrom))
+                warnings.warn("{} does not have any mapped reads in alignment "
+                              "file Or alignment is truncated or corrupt indexed. "
+                              "Skipping it.".format(chrom))
         perReadinfo.close()
         vcf_file.close()
         per_read= openfile(out1+"_HP2_PerReadInfo.tsv")
