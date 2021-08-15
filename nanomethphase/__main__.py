@@ -700,6 +700,7 @@ def main_phase(args):
     outformat = args.outformat.lower().split(',')
     fasta, tb= outformats_phase(outformat,reference,MethylCallfile)
     outexist_phase(args.overwrite,out1,out2)# Check if output files exist
+    unprocessed_chrom = set() 
     if args.vcf is not None:
         perReadinfo= open(out1+"_HP2_PerReadInfo.tsv", 'w')
         perReadinfo.write("#Chromosome\tReadRefStart\tReadRefEnd\tReadID\t"
@@ -762,6 +763,7 @@ def main_phase(args):
                 warnings.warn("{} does not have any mapped reads in alignment "
                               "file Or alignment is truncated or corrupt indexed. "
                               "Skipping it.".format(chrom))
+                unprocessed_chrom.add(chrom)
         perReadinfo.close()
         vcf_file.close()
         per_read= openfile(out1+"_HP2_PerReadInfo.tsv")
@@ -1053,12 +1055,16 @@ def main_phase(args):
                                          " tagged phased SNV: {}\n"
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
+                                         "Unprocessed chromosomes. These either did not have mapped reads "
+                                         "in the alignment file or the alignment is truncated or corrupt indexed:\n"
+                                         "{}\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
                                                    SNV_tagged_reads,
                                                    h1,
-                                                   h2))
+                                                   h2,
+                                                   ','.join(unprocessed_chrom)))
         else:
             sys.stderr.write("Job Finished.\n"
                                          "Number of all reads at processed chroms: {}\n"
@@ -1070,12 +1076,15 @@ def main_phase(args):
                                          " tagged phased SNV: {}\n"
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
+                                         "Unprocessed chromosomes. These either did not have mapped reads "
+                                         "in the alignment file or the alignment is truncated or corrupt indexed:\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
                                                    SNV_tagged_reads,
                                                    h1,
-                                                   h2))
+                                                   h2,
+                                                   ','.join(unprocessed_chrom)))
     else:
         sys.stderr.write("There is no phased SNV in your vcf file or "
                                      "Noe reads could be tagged.\n")
