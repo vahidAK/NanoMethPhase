@@ -1336,7 +1336,7 @@ def main_dma(args):
                 out_putNumber += 1
                 case_out = open("{}_ReadyForDSS_case{}.tsv".format(
                     out_prefix, out_putNumber), "w")
-                with open(case) as case_file:
+                with openfile(case) as case_file:
                     next(case_file)  # Exclude header
                     for line in case_file:
                         line = line.rstrip().split('\t')
@@ -1357,7 +1357,7 @@ def main_dma(args):
                 out_putNumber += 1
                 control_out = open("{}_ReadyForDSS_control{}.tsv".format(
                     out_prefix, out_putNumber), "w")
-                with open(control) as control_file:
+                with openfile(control) as control_file:
                     next(control_file)
                     for line in control_file:
                         line = line.rstrip().split('\t')
@@ -1382,7 +1382,7 @@ def main_dma(args):
                     out_prefix, out_putNumber), "w")
                 cov_dict = defaultdict(int)
                 mod_sites_dict = defaultdict(int)
-                with open(case) as case_file:
+                with openfile(case) as case_file:
                     next(case_file)
                     for line in case_file:
                         line = line.rstrip().split('\t')
@@ -1415,7 +1415,7 @@ def main_dma(args):
                     out_prefix, out_putNumber), "w")
                 cov_dict = defaultdict(int)
                 mod_sites_dict = defaultdict(int)
-                with open(control) as control_file:
+                with openfile(control) as control_file:
                     next(control_file)
                     for line in control_file:
                         line = line.rstrip().split('\t')
