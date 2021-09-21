@@ -590,5 +590,5 @@ We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R
 callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.
 
 # Example:
-We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.
+We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.  
 If you want to try workflow from basecalling to methylation phasing we have included a subset of NA12878 data (chr11:1000000-3000000) at [this link](https://www.bcgsc.ca/downloads/NanoMethPhase/test_data.tar.gz) which you can download and try.
