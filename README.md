@@ -41,6 +41,7 @@ conda activate nanomethphase
 Now you can install NanoMethPhase using pip or use it from source in the dedicated environment with all dependencies installed.  
   
 ## From [source](https://github.com/vahidAK/NanoMethPhase.git)
+**RECOMMENDED**
 Before using from source make sure that the dependencies in the [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) are satisfied.  
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
