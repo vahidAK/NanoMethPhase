@@ -47,7 +47,7 @@ pip install nanomethphase
 ```
 
 ## From [source](https://github.com/vahidAK/NanoMethPhase.git)
-
+Before using from source make sure that the dependencies in the [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) are satisfied.  
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
 cd NanoMethPhase
