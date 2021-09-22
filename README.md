@@ -14,8 +14,8 @@ Table of Contents
 =================
 
 * **[Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)**
-  * [Using pip](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#using-pypi-repository-pip)
   * [From source](https://github.com/vahidAK/NanoMethPhase#from-source)
+  * [Using pip](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#using-pypi-repository-pip)
   * [Using Docker](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#using-docker-image)
 * **[NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)**
   * [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
@@ -40,18 +40,17 @@ conda activate nanomethphase
 ```
 Now you can install NanoMethPhase using pip or use it from source in the dedicated environment with all dependencies installed.  
   
-## Using [pypi repository](https://pypi.org/project/nanomethphase/) (pip)
-
-```
-pip install nanomethphase
-```
-
 ## From [source](https://github.com/vahidAK/NanoMethPhase.git)
 Before using from source make sure that the dependencies in the [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) are satisfied.  
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
 cd NanoMethPhase
 ./nanomethphase.py
+```
+## Using [pypi repository](https://pypi.org/project/nanomethphase/) (pip)
+
+```
+pip install nanomethphase
 ```
 
 ## Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
