@@ -11,6 +11,6 @@ dependencies:
   - pytabix
   - tabix
   - tqdm
-  - r-r.utils>=2.8.0
-  - r-sys>=3.2
+  - r-r.utils
+  - r-sys
   - bioconductor-dss
