@@ -375,7 +375,8 @@ nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -
 
 ```
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
-```
+```  
+**NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This results in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag. 
 
 You can select 3 output options:
 
@@ -404,7 +405,7 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.  
+***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. bam2bis by default ignores sublementary reads, to include them add -is flag.  
   
 
 **NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
@@ -523,10 +524,9 @@ nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -
 
 ```
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
-```
+```  
 
-If your are not using called SNVs from nanopore data, and they come from, for
-example, short-read sequencing, we recommend using -mbq 0 in the above code.
+**NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This results in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag.
 
 You can select 3 output options:
 
@@ -555,8 +555,7 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV.
-  
+***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. bam2bis by default ignores sublementary reads, to include them add -is flag.  
 
 **NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
   
