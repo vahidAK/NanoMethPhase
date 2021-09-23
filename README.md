@@ -377,7 +377,7 @@ nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
 ```  
 **NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This results in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag. 
-
+**NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
 You can select 3 output options:
 
 ***bam***: output phased bam files
@@ -424,9 +424,6 @@ The headers for methylation frequency files are as follow:
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
 Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols etc.  
-  
-  
-**NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1)  
   
 **3- Getting differentially methylated regions between haplotypes:**  
 
@@ -526,8 +523,9 @@ nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
 ```  
 
-**NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This results in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag.
-
+**NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This results in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag.  
+**NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
+  
 You can select 3 output options:
 
 ***bam***: output phased bam files
