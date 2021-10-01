@@ -1056,7 +1056,7 @@ def main_phase(args):
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
                                          "Unprocessed chromosomes. These either did not have mapped reads "
-                                         "in the alignment file or the alignment is truncated or corrupt indexed:\n"
+                                         "in the alignment file or the alignment is truncated or corrupt indexed: "
                                          "{}\n"
                                          "".format(all_read,
                                                    MappingQuality,
@@ -1077,7 +1077,8 @@ def main_phase(args):
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
                                          "Unprocessed chromosomes. These either did not have mapped reads "
-                                         "in the alignment file or the alignment is truncated or corrupt indexed:\n"
+                                         "in the alignment file or the alignment is truncated or corrupt indexed: "
+                                         "{}\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
