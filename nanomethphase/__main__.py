@@ -506,7 +506,7 @@ def methcall2bed(readlist,
                 strand= line[2]
                 cpg_pos= int(line[1])
                 if strand == "-":
-                    cpg_pos= int(line[1]) - 1 # to make it like nanopolish
+                    cpg_pos= cpg_pos - 1 # to make it like nanopolish
                 read_id= line[4]
                 chrom = line[0]
                 deltaprob = float(line[7]) - float(line[6])
@@ -552,7 +552,7 @@ def methcall2bed(readlist,
                     strand = "-"
                 cpg_pos= int(line[3])
                 if strand == "-":
-                    cpg_pos= int(line[3]) - 1 # to make it like nanopolish
+                    cpg_pos= cpg_pos - 1 # to make it like nanopolish
                 read_id= line[0]
                 chrom = line[1]
                 deltaprob= math.exp(float(line[4])) - (1 - math.exp(float(line[4])))
@@ -1806,8 +1806,8 @@ def methyl_call_processor_parser(subparsers):
                            type=str,
                            required=True,
                            default=None,
-                           help=("The path to the nanopolish methylation call "
-                                 "file from."))
+                           help=("The path to the per-read methylation call "
+                                 "file."))
     smp_input = sub_methyl_call_processor.add_argument_group("optional arguments")
     smp_input.add_argument("-h", "--help",
                           action="help",
@@ -1826,17 +1826,17 @@ def methyl_call_processor_parser(subparsers):
                                  "as methylated and llr <= -2 as unmethylated, any thing "
                                  "in between will be considered as ambiguous call."
                                  " For nanopolish this call thresold values are in the log_lik_ratio"
-                                 " column."
-                                 "For megalodon call thresold will be prob_methylated - prob_unmethylated "
-                                 "which is (10^mod_log_prob) - (1 - 10^mod_log_prob). In megalodon, "
+                                 " column.\n"
+                                 "For megalodon call thresold will be delta probability (prob_methylated - prob_unmethylated) "
+                                 "which is e^mod_log_prob - (1 - e^mod_log_prob). In megalodon, "
                                  "the default binary probability threshold to call a base modified is 0.8. "
                                  "This will translate to a call threshold of 0.6 (0.8 - 0.2 = 0.6). "
                                  "Therefore, at 0.6 threshold bases between 0.8 and 0.2 probability"
                                  " will be considered as ambiguous and more than 0.8 as methylated "
-                                 "and less than 0.2 as unmethylated."
-                                 "For deepsignal, as for megalodon, this call threshold is "
-                                 "prob_methylated - prob_unmethylated. In deepsignal itself,"
-                                 " The default for this is 0."
+                                 "and less than 0.2 as unmethylated.\n"
+                                 "For deepsignal, as for megalodon, this call threshold is delta probability"
+                                 " (prob_methylated - prob_unmethylated). In deepsignal itself,"
+                                 " the default for this is 0.\n"
                                  " For tombo, as for nanopolish, call threshold is the llr." 
                                  " However, in tombo llr <= -threshold is methylated  and "
                                  "llr >= threshold is unmethylated. For example tombo:2 means"
@@ -1845,7 +1845,8 @@ def methyl_call_processor_parser(subparsers):
                                  "NOTE: if you are using tombo you must use the "
                                  "Tombo_PerReadExtract.py script in the script folder to"
                                  "convert per-read stat from tombo h5 file to tsv file "
-                                 "and use it as input."))
+                                 "and use it as input, tombo must be installed before using"
+                                 " this script."))
     smp_input.add_argument("--motif", "-mf",
                            action="store",
                            type=str,
