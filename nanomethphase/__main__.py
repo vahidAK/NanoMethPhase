@@ -42,6 +42,7 @@ from itertools import repeat
 import statistics
 import pysam
 import tabix
+import math
 from tqdm import tqdm
 
 
@@ -425,72 +426,205 @@ def FrequencyCalculator(file_path):
 
 
 def methcall2bed(readlist,
+                 motif,
                  callthresh,
-                 motif):
+                 tool):
     """
     This function converts nanopolish methylation call file to a bed
     format and also splits multi-group CpG sites to single group.
     """
     read_list= list()
-    for read in readlist:
-        methylated_sites = []
-        unmethylated_sites= []
-        llr_methylated= []
-        llr_unmethylated= []
-        for line in read:
-            line = line.split('\t')
-            num_sites = int(line[9])
-            logratio = float(line[5])
-            sequence= line[10].upper()
-            strand= line[1]
-            read_id= line[4]
-            # Skipping ambiguous call in methyl call file
-            if abs(logratio) < callthresh * num_sites:
-                continue
-            chrom = line[0]
-            if int(line[9]) > 1:  # Check if the line includes multi-group CpG
+    if tool == "nanopolish":
+        for read in readlist:
+            methylated_sites = []
+            unmethylated_sites= []
+            llr_methylated= []
+            llr_unmethylated= []
+            for line in read:
+                line = line.split('\t')
+                num_sites = int(line[9])
                 logratio = float(line[5])/int(line[9])
-                splited_groupIndexes = [(j.start())
-                                        for j in re.finditer(motif, sequence)]
-                if logratio > 0:
-                    methylated_sites.append(int(line[2]))
-                    llr_methylated.append(str(logratio))
-                else:
-                    unmethylated_sites.append(int(line[2]))
-                    llr_unmethylated.append(str(logratio))
-                for splited_groupIndex in splited_groupIndexes[1:]:
-                    position = int(line[2])+(splited_groupIndex
-                                             - splited_groupIndexes[0])
+                sequence= line[10].upper()
+                strand= line[1]
+                cpg_pos= int(line[2])
+                read_id= line[4]
+                # Skipping ambiguous call in methyl call file
+                if abs(logratio) < callthresh:
+                    continue
+                chrom = line[0]
+                if int(line[9]) > 1:  # Check if the line includes multi-group CpG
+                    splited_groupIndexes = [(j.start())
+                                            for j in re.finditer(motif, sequence)]
                     if logratio > 0:
-                        methylated_sites.append(position)
+                        methylated_sites.append(cpg_pos)
                         llr_methylated.append(str(logratio))
                     else:
-                        unmethylated_sites.append(position)
+                        unmethylated_sites.append(cpg_pos)
                         llr_unmethylated.append(str(logratio))
-            else:
-                if logratio > 0:
-                    methylated_sites.append(int(line[2]))
+                    for splited_groupIndex in splited_groupIndexes[1:]:
+                        position = cpg_pos + (splited_groupIndex
+                                                 - splited_groupIndexes[0])
+                        if logratio > 0:
+                            methylated_sites.append(position)
+                            llr_methylated.append(str(logratio))
+                        else:
+                            unmethylated_sites.append(position)
+                            llr_unmethylated.append(str(logratio))
+                else:
+                    if logratio > 0:
+                        methylated_sites.append(cpg_pos)
+                        llr_methylated.append(str(logratio))
+                    else:
+                        unmethylated_sites.append(cpg_pos)
+                        llr_unmethylated.append(str(logratio))
+            all_positions= sorted(methylated_sites + unmethylated_sites)
+            if all_positions:
+                if not methylated_sites:
+                    methylated_sites.append('NA')
+                    llr_methylated.append('NA')
+                if not unmethylated_sites:
+                    unmethylated_sites.append('NA')
+                    llr_unmethylated.append('NA')
+                append_info= (chrom,
+                              str(all_positions[0]),
+                              str(all_positions[-1]+1),
+                                strand, read_id,
+                                ','.join(llr_methylated),
+                                ','.join(llr_unmethylated),
+                                ','.join(map(str,methylated_sites)),
+                                ','.join(map(str,unmethylated_sites)))
+                read_list.append(append_info)
+
+    elif tool == "deepsignal":
+        for read in readlist:
+            methylated_sites = []
+            unmethylated_sites= []
+            prob_methylated= []
+            prob_unmethylated= []
+            for line in read:
+                line = line.split('\t')
+                strand= line[2]
+                cpg_pos= int(line[1])
+                if strand == "-":
+                    cpg_pos= int(line[1]) - 1 # to make it like nanopolish
+                read_id= line[4]
+                chrom = line[0]
+                deltaprob = float(line[7]) - float(line[6])
+                # Skipping ambiguous call in methyl call file
+                if abs(deltaprob) < callthresh:
+                    continue
+                if deltaprob > 0:
+                    methylated_sites.append(cpg_pos)
+                    prob_methylated.append(str(deltaprob))
+                else:
+                    unmethylated_sites.append(cpg_pos)
+                    prob_unmethylated.append(str(deltaprob))
+            all_positions= sorted(methylated_sites + unmethylated_sites)
+            if all_positions:
+                if not methylated_sites:
+                    methylated_sites.append('NA')
+                    prob_methylated.append('NA')
+                if not unmethylated_sites:
+                    unmethylated_sites.append('NA')
+                    prob_unmethylated.append('NA')
+                append_info= (chrom,
+                              str(all_positions[0]),
+                              str(all_positions[-1]+1),
+                              strand, read_id,
+                              ','.join(prob_methylated),
+                              ','.join(prob_unmethylated),
+                              ','.join(map(str,methylated_sites)),
+                              ','.join(map(str,unmethylated_sites)))
+                read_list.append(append_info)
+        
+    elif tool == "megalodon":
+        for read in readlist:
+            methylated_sites = []
+            unmethylated_sites= []
+            prob_methylated= []
+            prob_unmethylated= []
+            for line in read:
+                line = line.split('\t')
+                strand= line[2]
+                if strand == "1":
+                    strand = "+"
+                elif strand == "-1":
+                    strand = "-"
+                cpg_pos= int(line[3])
+                if strand == "-":
+                    cpg_pos= int(line[3]) - 1 # to make it like nanopolish
+                read_id= line[0]
+                chrom = line[1]
+                deltaprob= math.exp(float(line[4])) - (1 - math.exp(float(line[4])))
+                # Skipping ambiguous call in methyl call file
+                if abs(deltaprob) < callthresh:
+                    continue
+                if deltaprob > 0:
+                    methylated_sites.append(cpg_pos)
+                    prob_methylated.append(str(deltaprob))
+                else:
+                    unmethylated_sites.append(cpg_pos)
+                    prob_unmethylated.append(str(deltaprob))
+            all_positions= sorted(methylated_sites + unmethylated_sites)
+            if all_positions:
+                if not methylated_sites:
+                    methylated_sites.append('NA')
+                    prob_methylated.append('NA')
+                if not unmethylated_sites:
+                    unmethylated_sites.append('NA')
+                    prob_unmethylated.append('NA')
+                append_info= (chrom,
+                              str(all_positions[0]),
+                              str(all_positions[-1]+1),
+                              strand, read_id,
+                              ','.join(prob_methylated),
+                              ','.join(prob_unmethylated),
+                              ','.join(map(str,methylated_sites)),
+                              ','.join(map(str,unmethylated_sites)))
+                read_list.append(append_info)
+
+    elif tool == "tombo":
+        for read in readlist:
+            methylated_sites = []
+            unmethylated_sites= []
+            llr_methylated= []
+            llr_unmethylated= []
+            for line in read:
+                line = line.split('\t')
+                logratio = float(line[3])
+                strand= line[1]
+                cpg_pos= int(line[2])
+                if strand == "-":
+                    cpg_pos= cpg_pos - 1 # to make it like nanopolish
+                read_id= line[4]
+                chrom = line[0]
+                # Skipping ambiguous call in methyl call file
+                if abs(logratio) < callthresh:
+                    continue
+                if logratio < 0:
+                    methylated_sites.append(cpg_pos)
                     llr_methylated.append(str(logratio))
                 else:
-                    unmethylated_sites.append(int(line[2]))
+                    unmethylated_sites.append(cpg_pos)
                     llr_unmethylated.append(str(logratio))
-        all_positions= sorted(methylated_sites + unmethylated_sites)
-        if all_positions:
-            if not methylated_sites:
-                methylated_sites.append('NA')
-                llr_methylated.append('NA')
-            if not unmethylated_sites:
-                unmethylated_sites.append('NA')
-                llr_unmethylated.append('NA')
-            append_info= (chrom,
-                          str(all_positions[0]),
-                          str(all_positions[-1]+1),
-                            strand, read_id,
-                            ','.join(llr_methylated),
-                            ','.join(llr_unmethylated),
-                            ','.join(map(str,methylated_sites)),
-                            ','.join(map(str,unmethylated_sites)))
-            read_list.append(append_info)
+            all_positions= sorted(methylated_sites + unmethylated_sites)
+            if all_positions:
+                if not methylated_sites:
+                    methylated_sites.append('NA')
+                    llr_methylated.append('NA')
+                if not unmethylated_sites:
+                    unmethylated_sites.append('NA')
+                    llr_unmethylated.append('NA')
+                append_info= (chrom,
+                              str(all_positions[0]),
+                              str(all_positions[-1]+1),
+                                strand, read_id,
+                                ','.join(llr_methylated),
+                                ','.join(llr_unmethylated),
+                                ','.join(map(str,methylated_sites)),
+                                ','.join(map(str,unmethylated_sites)))
+                read_list.append(append_info)
+                
     return read_list
 
 
@@ -586,18 +720,34 @@ def main_methyl_call_processor(args):
     file for downstream step during Phasing.
     """
     MethylCallfile = os.path.abspath(args.MethylCallfile)
+    tool,callthresh= args.tool_and_callthresh.split(":")
+    tool= tool.lower()
     threads = args.threads
     chunk = args.chunk_size
     if args.motif.lower() == "cpg":
         args.motif = 'CG'
     else:
         raise TypeError("Please select motif type correctly (cpg)")
+    if tool=="nanopolish" or tool=="tombo":
+        readID_index= 4
+        start_index= 2
+        strand_index= 1
+    elif tool=="deepsignal":
+        readID_index= 4
+        start_index= 1
+        strand_index= 2
+    elif tool=="megalodon":
+        readID_index= 0
+        start_index= 3
+        strand_index= 2
+    else:
+        raise TypeError("Please select tool correctly")
     meth = openfile(MethylCallfile)
     next(meth)  # To skip the header
     prev_info= next(meth).rstrip().split('\t')
-    prev_readID= prev_info[4]
-    prev_strand= prev_info[1]
-    prev_start= int(prev_info[2])
+    prev_readID= prev_info[readID_index]
+    prev_start= int(prev_info[start_index])
+    prev_strand= prev_info[strand_index]
     all_lines = 1
     for line in meth:
         all_lines += 1
@@ -615,20 +765,20 @@ def main_methyl_call_processor(args):
             tqdm_add += 1
             line = line.rstrip()
             line_info= line.split('\t')
-            start= int(line_info[2])
-            if (line_info[4] == prev_readID and
-                line_info[1] == prev_strand and
+            start= int(line_info[start_index])
+            if (line_info[readID_index] == prev_readID and
+                line_info[strand_index] == prev_strand and
                 abs(start -  prev_start) < 100000):
-                prev_readID = line_info[4]
-                prev_strand = line_info[1]
+                prev_readID = line_info[readID_index]
+                prev_strand = line_info[strand_index]
                 prev_start= start
                 readlist.append(line)
             else:
                 chunklist.append(readlist)
                 readlist = []
                 readlist.append(line)
-                prev_readID = line_info[4]
-                prev_strand = line_info[1]
+                prev_readID = line_info[readID_index]
+                prev_strand = line_info[strand_index]
                 prev_start= start
             if len(chunklist) == chunk:
                 feedlist.append(chunklist)
@@ -637,8 +787,9 @@ def main_methyl_call_processor(args):
                 p = mp.Pool(threads)
                 results = p.starmap(methcall2bed,
                                     list(zip(feedlist,
-                                             repeat(args.callThreshold),
-                                             repeat(args.motif))))
+                                             repeat(args.motif),
+                                             repeat(float(callthresh)),
+                                             repeat(tool))))
                 p.close()
                 p.join()
                 for result in results:
@@ -654,8 +805,9 @@ def main_methyl_call_processor(args):
             p = mp.Pool(len(feedlist))
             results = p.starmap(methcall2bed,
                                 list(zip(feedlist,
-                                         repeat(args.callThreshold),
-                                         repeat(args.motif))))
+                                         repeat(args.motif),
+                                         repeat(float(callthresh)),
+                                         repeat(tool))))
             p.close()
             p.join()
             for result in results:
@@ -1056,8 +1208,7 @@ def main_phase(args):
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
                                          "Unprocessed chromosomes. These either did not have mapped reads "
-                                         "in the alignment file or the alignment is truncated or corrupt indexed: "
-                                         "{}\n"
+                                         "in the alignment file or the alignment is truncated or corrupt indexed: {}\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
@@ -1077,8 +1228,7 @@ def main_phase(args):
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
                                          "Unprocessed chromosomes. These either did not have mapped reads "
-                                         "in the alignment file or the alignment is truncated or corrupt indexed: "
-                                         "{}\n"
+                                         "in the alignment file or the alignment is truncated or corrupt indexed: {}\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
@@ -1662,14 +1812,40 @@ def methyl_call_processor_parser(subparsers):
     smp_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
-    smp_input.add_argument("--callThreshold", "-ct",
+    smp_input.add_argument("--tool_and_callthresh", "-tc",
                            action="store",
-                           type=float,
+                           type=str,
                            required=False,
-                           default=2.0,
-                           help=("Quality threshold for considering a site as "
-                                 "methylated in methylation call file. "
-                                 "Default is 2.0"))
+                           default="nanopolish:2",
+                           help=("Software you have used for methylation calling "
+                                 "(nanoplish, megalodon, deepsignal, or tombo):"
+                                 "methylation call threshold for considering a site as "
+                                 "methylated, unmethylated or ambiguous in methylation call file. "
+                                 "Default is nanopolish:2 which is when methylation"
+                                 " calling performed by nanopolish and llr >= 2 will be considered "
+                                 "as methylated and llr <= -2 as unmethylated, any thing "
+                                 "in between will be considered as ambiguous call."
+                                 " For nanopolish this call thresold values are in the log_lik_ratio"
+                                 " column."
+                                 "For megalodon call thresold will be prob_methylated - prob_unmethylated "
+                                 "which is (10^mod_log_prob) - (1 - 10^mod_log_prob). In megalodon, "
+                                 "the default binary probability threshold to call a base modified is 0.8. "
+                                 "This will translate to a call threshold of 0.6 (0.8 - 0.2 = 0.6). "
+                                 "Therefore, at 0.6 threshold bases between 0.8 and 0.2 probability"
+                                 " will be considered as ambiguous and more than 0.8 as methylated "
+                                 "and less than 0.2 as unmethylated."
+                                 "For deepsignal, as for megalodon, this call threshold is "
+                                 "prob_methylated - prob_unmethylated. In deepsignal itself,"
+                                 " The default for this is 0."
+                                 " For tombo, as for nanopolish, call threshold is the llr." 
+                                 " However, in tombo llr <= -threshold is methylated  and "
+                                 "llr >= threshold is unmethylated. For example tombo:2 means"
+                                 "any call with llr 2 to -2 is ambiguous, more than 2 "
+                                 "unmethylated and less than -2 is methylated. "
+                                 "NOTE: if you are using tombo you must use the "
+                                 "Tombo_PerReadExtract.py script in the script folder to"
+                                 "convert per-read stat from tombo h5 file to tsv file "
+                                 "and use it as input."))
     smp_input.add_argument("--motif", "-mf",
                            action="store",
                            type=str,
@@ -2011,4 +2187,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
