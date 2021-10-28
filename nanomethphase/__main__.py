@@ -1303,7 +1303,7 @@ def main_dma(args):
             for filename in filenames:
                 controls.append(dirpath+'/'+filename)
     else:    
-        controls= os.path.abspath(args.control)
+        controls= [os.path.abspath(args.control)]
         
     out_dir = os.path.abspath(args.out_dir)
     out_prefix = out_dir+'/'+(args.out_prefix)
