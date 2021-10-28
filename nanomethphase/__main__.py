@@ -1439,12 +1439,22 @@ def main_dma(args):
     This is the DMA module which does differential methylation analysis
     using DSS R package to find differentially methylated regions.
     """
-    input_dir_case = os.path.dirname(os.path.abspath(args.case)) + "/"
-    input_dir_control = os.path.dirname(os.path.abspath(args.control)) + "/"
-    input_name_case = os.path.basename(args.case).split(',')
-    input_name_control = os.path.basename(args.control).split(',')
-    cases = [input_dir_case+x for x in input_name_case]
-    controls = [input_dir_control+x for x in input_name_control]
+    if os.path.isdir(os.path.abspath(args.case)):
+        cases= []
+        for (dirpath, dirnames, filenames) in os.walk(os.path.abspath(args.case)):
+            for filename in filenames:
+                cases.append(dirpath+'/'+filename)
+    else:    
+        cases= [os.path.abspath(args.case)]
+    
+    if os.path.isdir(os.path.abspath(args.control)):
+        controls= []
+        for (dirpath, dirnames, filenames) in os.walk(os.path.abspath(args.control)):
+            for filename in filenames:
+                controls.append(dirpath+'/'+filename)
+    else:    
+        controls= [os.path.abspath(args.control)]
+        
     out_dir = os.path.abspath(args.out_dir)
     out_prefix = out_dir+'/'+(args.out_prefix)
     coverage = args.coverage
@@ -1983,18 +1993,15 @@ def dma_parser(subparsers):
                             help=("The path to the tab delimited input "
                                   "methylation frequency or ready input case "
                                   "file(s). If multiple files, files must be "
-                                  "in the same directory and enter them comma "
-                                  "seperates (e.g. file1,file2,file3)"))
+                                  "in the same directory and give the path to the directory."))
     sdma_input.add_argument("--control", "-co",
                             action="store",
                             type=str,
                             required=True,
                             help=("The path to the tab delimited input "
                                   "methylation frequency or ready input "
-                                  "control file(s). If multiple files, files "
-                                  "must be in the same directory and enter "
-                                  "them comma seperates "
-                                  "(e.g. file1,file2,file3)"))
+                                  "control file(s). If multiple files, files must be "
+                                  "in the same directory and give the path to the directory."))
     sdma_input.add_argument("--out_dir", "-o",
                             action="store",
                             type=str,
