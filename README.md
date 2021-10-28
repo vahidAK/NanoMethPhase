@@ -7,7 +7,7 @@ Access [here](https://doi.org/10.1186/s13059-021-02283-5)
   
 UPDATE
 =============
-Support for other methylation callers , in addition to Nanopolsih, including Megalodon, DeepSignal and Tombo has been added to NanoMethPhase. Curently this update is accessible through **iss5 branch**. See issue [#5](https://github.com/vahidAK/NanoMethPhase/issues/5) for more info.
+Support for other methylation callers , in addition to Nanopolsih, including Megalodon, DeepSignal and Tombo has been added to NanoMethPhase. Currently, this update is accessible through **iss5 branch**. See issue [#5](https://github.com/vahidAK/NanoMethPhase/issues/5) for more info.
 
 Overall Workflow
 =============
