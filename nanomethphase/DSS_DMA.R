@@ -17,7 +17,6 @@
 
 library(sys)
 suppressPackageStartupMessages(library("R.utils"))
-if (!require('DSS')) install.packages('DSS')
 suppressPackageStartupMessages(library("DSS"))
 
 #The first argument is first file, second is second file and third is your
