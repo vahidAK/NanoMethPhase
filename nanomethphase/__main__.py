@@ -1322,7 +1322,7 @@ def main_dma(args):
     pct_sig = args.pct_sig
     # check if outputs exist
     if args.columns:
-        check_outs = [x for x in glob.glob("{}*".format(out_prefix))]
+        check_outs = [x for x in glob.glob("{}*{}".format(out_prefix+"_ReadyForDSS_case",".tsv"))]
         if check_outs and not args.overwrite:
             raise FileExistsError("The selected output files {} already "
                                   "exist. Select --overwrite option if you "
