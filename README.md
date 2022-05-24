@@ -9,6 +9,7 @@ UPDATE
 =============
 Support for other methylation callers , in addition to Nanopolsih, including Megalodon, DeepSignal and Tombo has been added to NanoMethPhase. Currently, this update is accessible through **iss5 branch**. See issue [#5](https://github.com/vahidAK/NanoMethPhase/issues/5) for more info.
 
+previously, in the dma module, we added 1 unit to the start position of the CpG to convert it to one-based cordinate. However, we have changed it and the start cordinate will be as the input and if input is zero-based the DMRs will be also zero-based and if the input is one-based DMRs will be also one based. We changed this as it is possible to use dma module for other data not just nanomethphase outputs.
 Overall Workflow
 =============
 ![](docs/images/NanoMethPhaseFlowChart.png)
@@ -583,7 +584,6 @@ nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1
 
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
 callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.  
-**NOTE:** cordinates in dma module results are 1-based.  
 
 # Example:
 We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.  
