@@ -1357,7 +1357,7 @@ def main_dma(args):
                             start = line[col2-1]
                             mod_sites = round(cov * float(line[col4-1]))
                             case_out.write('\t'.join([chrom,
-                                                      str(int(start)+1),
+                                                      start,
                                                       str(cov),
                                                       str(mod_sites)+'\n']))
                 case_out.close()
@@ -1378,7 +1378,7 @@ def main_dma(args):
                             start = line[col2-1]
                             mod_sites = round(cov * float(line[col4-1]))
                             control_out.write('\t'.join([chrom,
-                                                         str(int(start)+1),
+                                                         start,
                                                          str(cov),
                                                          str(mod_sites)+'\n']))
                 control_out.close()
@@ -1413,7 +1413,7 @@ def main_dma(args):
                         start = key[1]
                         mod_sites = mod_sites_dict[key]
                         case_out.write('\t'.join([chrom,
-                                                  str(start+1),
+                                                  str(start),
                                                   str(cov),
                                                   str(mod_sites)+'\n']))
                     case_out.close()
@@ -1446,7 +1446,7 @@ def main_dma(args):
                         start = key[1]
                         mod_sites = mod_sites_dict[key]
                         control_out.write('\t'.join([chrom,
-                                                     str(start+1),
+                                                     str(start),
                                                      str(cov),
                                                      str(mod_sites)+'\n']))
                     control_out.close()
