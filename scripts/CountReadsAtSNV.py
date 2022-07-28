@@ -7,7 +7,7 @@ from tqdm import tqdm
 from itertools import repeat
 import warnings
 parser = argparse.ArgumentParser(description='Finding reads mapped to ref/alt at each SNV')
-parser.add_argument("--input", "-i", action="store", type=str,required=True,help="The path to the input vcf.") 
+parser.add_argument("--input", "-i", action="store", type=str,required=True,help="The path to the input SNV vcf file. File must contain only SNVs.") 
 parser.add_argument("--bam", "-b", action="store", type=str,required=True,help="The path to the alignment bam file") 
 parser.add_argument("--mappingQuality", "-mq", action="store", type=int,default= 0
                     ,required=False,help="Cutt off for filtering out low quality mapped reads from bam. Default is 0")
@@ -79,7 +79,10 @@ def main():
     for line in vcf:
         if line.startswith("#"):
             continue
-        all_lines.append(1)
+        line=line.rstrip().split('\t')
+        if (line[9].startswith('0|1') or line[9].startswith('1|0') or
+            line[9].startswith('1/0') or line[9].startswith('0/1')):
+            all_lines.append(1)
     all_lines = [all_lines[x:x+chunk]
                          for x in range(0, len(all_lines), chunk)]
     all_lines = [all_lines[x:x+threads]
