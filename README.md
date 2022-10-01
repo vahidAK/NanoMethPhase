@@ -474,18 +474,27 @@ For the full tutorial please refer to
 
 ## 2- Variant Calling
 
-We have used Clair to call variants. However, you may call variants with other
-tools or your variant data may come from Illumina or other methods.
+### 2-1 Recent development of clair, [Clair3](https://github.com/HKU-BAL/Clair3), is available for variant calling and works better compare to Clair. Note that you can use other variant callers or varinat call data from other sorces. Here we give instructions for both Clair and Clair3.
+To call variants using Clair3 run:
 
-You can call variants for each chromosome using the following command and then
+```
+run_clair3.sh --bam_fn=/path/to/Nanopore_aligned_reads.bam \
+  --ref_fn=/path/to/reference.fa \
+  --output=/path/to/output/directory \
+  --threads=<# of threads> --platform=ont \
+  --model_path=/path/to/model/ont_guppy5_r941_sup_g5014
+```
+After variant calling the results will be in merge_output.vcf.gz file in the output directory. You then need to extract high uality variants:  
+```
+gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $7=="PASS"' > /path/to/output/Passed_Clair3_Variants.vcf
+```  
+
+### 2-2 If you use [Clair](https://github.com/HKU-BAL/Clair) to call variants. You can call variants for each chromosome using the following command and then
 concatenate all files:
 
 ```
 for i in chr{1..22} chrX chrY; do callVarBam --chkpnt_fn <path_to_model_file> --ref_fn <reference_genome.fa> --bam_fn <sorted_indexed.bam> --ctgName $i --sampleName <your_sample_name> --call_fn $i".vcf" --threshold 0.2 --samtools <path_to_executable_samtools_software> --pypy <path_to_executable_pypy > --threads <number_of_threads>
 ```
-
-For the full tutorial please refer to [Clair](https://github.com/HKU-BAL/Clair)
-page on GitHub.
 
 After variant calling, you can select only SNVs which will be used for phasing:
 ```
