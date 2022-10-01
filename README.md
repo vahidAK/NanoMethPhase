@@ -56,7 +56,7 @@ pip install nanomethphase
 
 ## Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
-It ships with complementary softwares SNVoter, Nanopolish, Clair (We recommend the new Clair3), WhatsHap &
+It ships with complementary softwares SNVoter, Nanopolish, Clair (We highly recommend the new Clair3 which you need to install yourself), WhatsHap &
 Tabix. **The container does not natively support interactive usage**, please
 refer to the workaround below.
 
@@ -446,7 +446,7 @@ software:
 
 [Nanopolish](https://github.com/jts/nanopolish) : To call CpG methylation.
 
-[Clair](https://github.com/HKU-BAL/Clair) or other variant callers: To call
+New development of Clair, [Clair3](https://github.com/HKU-BAL/Clair3) or other variant callers: To call
 variants for your sample. Alternatively, you might already have variant calling
 data for example from Illumina sequencing.
 
@@ -474,7 +474,7 @@ For the full tutorial please refer to
 
 ## 2- Variant Calling
 
-### 2-1 Recent development of clair, [Clair3](https://github.com/HKU-BAL/Clair3), is available for variant calling and works better compare to Clair. Note that you can use other variant callers or varinat call data from other sorces. Here we give instructions for both Clair and Clair3.
+### 2-1 [Clair3](https://github.com/HKU-BAL/Clair3) can be used for variant calling and we recommend Clair3 instead of Clair.
 To call variants using Clair3 run:
 
 ```
@@ -489,8 +489,7 @@ After variant calling the results will be in merge_output.vcf.gz file in the out
 gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $7=="PASS"' > /path/to/output/Passed_Clair3_Variants.vcf
 ```  
 
-### 2-2 If you use [Clair](https://github.com/HKU-BAL/Clair) to call variants. You can call variants for each chromosome using the following command and then
-concatenate all files:
+### 2-2 If you use [Clair](https://github.com/HKU-BAL/Clair) to call variants.
 
 ```
 for i in chr{1..22} chrX chrY; do callVarBam --chkpnt_fn <path_to_model_file> --ref_fn <reference_genome.fa> --bam_fn <sorted_indexed.bam> --ctgName $i --sampleName <your_sample_name> --call_fn $i".vcf" --threshold 0.2 --samtools <path_to_executable_samtools_software> --pypy <path_to_executable_pypy > --threads <number_of_threads>
@@ -500,8 +499,9 @@ After variant calling, you can select only SNVs which will be used for phasing:
 ```
 awk '$4 != "." && $5 != "." && length($4) == 1 && length($5) == 1 && $6 > <the_variant_calling_quality_threshold>' variants.vcf > HighQualitySNVs.vcf
 ```
+If you are calling variants from low coverage nanopore data (<30x) using Clair, you can also use our other tool [SNVoter](https://github.com/vahidAK/SNVoter) to improve SNV detection.  
 
-If you are calling variants from low coverage nanopore data (<30x) using Clair, you can also use our other tool [SNVoter](https://github.com/vahidAK/SNVoter) to improve SNV detection.
+**NOTE: ** You can use other variant callers or varinat call data from other sorces.  
 
 ## 3- Phasing of detected SNVs
 
