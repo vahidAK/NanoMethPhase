@@ -56,7 +56,7 @@ pip install nanomethphase
 
 ## Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
 
-It ships with complementary softwares SNVoter, Nanopolish, Clair, WhatsHap &
+It ships with complementary softwares SNVoter, Nanopolish, Clair (We recommend the new Clair3), WhatsHap &
 Tabix. **The container does not natively support interactive usage**, please
 refer to the workaround below.
 
