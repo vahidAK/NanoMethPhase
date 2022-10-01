@@ -482,7 +482,7 @@ run_clair3.sh --bam_fn=/path/to/Nanopore_aligned_reads.bam \
   --ref_fn=/path/to/reference.fa \
   --output=/path/to/output/directory \
   --threads=<# of threads> --platform=ont \
-  --model_path=/path/to/model/ont_guppy5_r941_sup_g5014
+  --model_path=/path/to/model
 ```
 After variant calling the results will be in merge_output.vcf.gz file in the output directory. You then need to extract high quality variants:  
 ```
