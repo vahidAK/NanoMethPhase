@@ -499,7 +499,7 @@ After variant calling, you can select only SNVs which will be used for phasing:
 ```
 awk '$4 != "." && $5 != "." && length($4) == 1 && length($5) == 1 && $6 > <the_variant_calling_quality_threshold>' variants.vcf > HighQualitySNVs.vcf
 ```
-If you are calling variants from low coverage nanopore data (<30x) using Clair, you can also use our other tool [SNVoter](https://github.com/vahidAK/SNVoter) to improve SNV detection.  
+If you are calling variants from low coverage nanopore data (<30x) using Clair, you can also use our other tool [SNVoter](https://github.com/vahidAK/SNVoter)  on all clair detected SNVs (do not filter for variant call quality) to improve SNV detection.  
 
 **NOTE: ** You can use other variant callers or varinat call data from other sorces.  
 
