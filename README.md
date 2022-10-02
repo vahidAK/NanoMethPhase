@@ -484,10 +484,14 @@ run_clair3.sh --bam_fn=/path/to/Nanopore_aligned_reads.bam \
   --threads=<# of threads> --platform=ont \
   --model_path=/path/to/model
 ```
-After variant calling the results will be in merge_output.vcf.gz file in the output directory. You then need to extract high quality variants:  
+After variant calling the results will be in merge_output.vcf.gz file in the output directory. You then need to filter variants:  
 ```
-gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $7=="PASS"' > HighQualityVariants.vcf
+gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $7=="PASS"' > PassedVariants.vcf
 ```  
+Or if you want to filter based on a quaity threshold
+```
+gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $6 > <quality threshold>' > HighQualityVariants.vcf
+```
 
 ### 2-2 If you use [Clair](https://github.com/HKU-BAL/Clair) to call variants.
 
@@ -509,7 +513,7 @@ If you have your SNVs data available you need to phase them using
 [WhatsHap](https://github.com/whatshap/whatshap).
 
 ```
-whatshap phase --ignore-read-groups --reference reference.fa -o HighQualitySNVs_whatshap_phased.vcf HighQualityVariants.vcf sorted_indexed.bam
+whatshap phase --ignore-read-groups --reference reference.fa -o whatshap_phased.vcf input.vcf sorted_indexed.bam
 ```
 
 For the full tutorial please refer to
