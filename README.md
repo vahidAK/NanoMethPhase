@@ -474,7 +474,7 @@ For the full tutorial please refer to
 ## 2- Variant Calling
 
 
-### 2-1 [Clair3](https://github.com/HKU-BAL/Clair3) can be used for variant calling and we recommend Clair3 instead of Clair.
+### 2-1 [Clair3](https://github.com/HKU-BAL/Clair3) can be used for variant calling and Clair3 is recommended instead of Clair.
 To call variants using Clair3 run:
 
 ```
