@@ -460,7 +460,7 @@ variants.
 NOTE: Fastqs must be merged to a single file
 
 ```
-nanopolish index -d /path/to/fast5s_directory/.fastq
+nanopolish index -d /path/to/fast5s_directory/ fastq.fastq
 ```
 
 ### 1-2 Methylation calling for CpG from each read:
@@ -505,7 +505,7 @@ awk '$4 != "." && $5 != "." && length($4) == 1 && length($5) == 1 && $6 > <the_v
 ```
 If you are calling variants from low coverage nanopore data (<30x) using Clair, you can also use our other tool [SNVoter](https://github.com/vahidAK/SNVoter)  on all clair detected SNVs (do not filter for variant call quality) to improve SNV detection.  
 
-**NOTE: ** You can use other variant callers or varinat call data from other sorces.  
+**NOTE:** You can use other variant callers or varinat call data from other sorces.  
 
 ## 3- Phasing of detected SNVs
 
