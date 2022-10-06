@@ -1731,13 +1731,13 @@ def phase_parser(subparsers):
                           default="cpg",
                           help=("The motif you called methylation for (cpg), "
                                 "Currently just cpg."))
-    sp_input.add_argument("--hapratio", "-hr1",
+    sp_input.add_argument("--hapratio", "-hr",
                           action="store",
                           type=float,
                           required=False,
                           default=0.75,
                           help=("0-1 .The threshold ratio between haplotype "
-                                "to tag as H1 or H2. Default is <= 0.7"))
+                                "to tag as H1 or H2. Default is <= 0.75"))
     sp_input.add_argument("--min_base_quality", "-mbq",
                           action="store",
                           type=int,
