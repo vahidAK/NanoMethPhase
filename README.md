@@ -178,7 +178,7 @@ optional arguments:
                         just cpg.
   --hapratio HAPRATIO, -hr HAPRATIO
                         0-1 .The threshold ratio between haplotype to tag as
-                        H1 or H2. Default is <= 0.7
+                        H1 or H2. Default is <= 0.75
   --min_base_quality MIN_BASE_QUALITY, -mbq MIN_BASE_QUALITY
                         Only include bases with phred score higher or equal
                         than this option. Default is >=7.
