@@ -53,7 +53,7 @@ print("equal_disp")
 print(args[12])
 print("######################################################################################################################")
 print("reading files")
-
+options(scipen = 15) # to avoid scientific notation in the results
 list_case= as.list(unlist(strsplit(args[1], ',')))
 list_control= as.list(unlist(strsplit(args[2], ',')))
 input_list= list()
