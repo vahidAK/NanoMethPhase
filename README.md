@@ -409,11 +409,7 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually for each CpG site the information from both strand is aggregated to non-strand per-CpG data. The following command converts strand-level frequency data to non-strand level (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
-
-```
-sed '1d' NanoMethPhase_HP1_MethylFrequency.tsv | awk -F'\t' '{if ($4=="-") {$2=$2-1;$3=$3-1}; print $1,$2,$3,$5,$6}' OFS='\t' | sort -k1,1 -k2,2n | datamash -g1,2,3 sum 4,5 | awk -F'\t' '{print $0,$5/$4}' OFS='\t' | sed '1i chromosome\tstart\tend\tNumOfAllCalls\tNumOfModCalls\tMethylFreq' > HP1_MethylFrequency.tsv
-```
+**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strand for each CpG and then calculate the new frequency for each CpG site.  
 
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. bam2bis by default ignores sublementary reads, to include them add -is flag.  
   
@@ -577,11 +573,7 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually for each CpG site the information from both strand is aggregated to non-strand per-CpG data. The following command converts strand-level frequency data to non-strand level (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
-
-```
-sed '1d' NanoMethPhase_HP1_MethylFrequency.tsv | awk -F'\t' '{if ($4=="-") {$2=$2-1;$3=$3-1}; print $1,$2,$3,$5,$6}' OFS='\t' | sort -k1,1 -k2,2n | datamash -g1,2,3 sum 4,5 | awk -F'\t' '{print $0,$5/$4}' OFS='\t' | sed '1i chromosome\tstart\tend\tNumOfAllCalls\tNumOfModCalls\tMethylFreq' > HP1_MethylFrequency.tsv
-```
+**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strand for each CpG and then calculate the new frequency for each CpG site.  
 
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. bam2bis by default ignores sublementary reads, to include them add -is flag.  
 
