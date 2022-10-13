@@ -318,11 +318,8 @@ optional arguments:
   --overwrite, -ow      If output files exist overwrite them
 ```  
 ## bam2bis:
-<<<<<<< HEAD
-Convert a bam file to a mock whole-genome bisulfite sequencing format for visualization in IGV. Note that the reads in the output bam are not exactly the same as the reads in the input bam. In the output bam the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
-=======
 Convert a bam file to a mock whole-genome bisulfite sequencing format for visualization in IGV. Note that the reads in the output bam from this module are not exactly the same as the reads in the input bam. In the output bam the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
->>>>>>> 389e476bcb9d280f5109d17c8223366e59f168cc
+
 ```
 usage: nanomethphase bam2bis --bam BAM --reference REFERENCE --methylcallfile
                              METHYLCALLFILE --output OUTPUT [-h]
@@ -413,13 +410,6 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-<<<<<<< HEAD
-**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site.  During DMA, dma module aggregates all calls and methylated calls from both strands for each CpG (ReadyForDSS files) and then performs differential methylation analysis.  
-
-
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. bam2bis by default ignores sublementary reads, to include them add -is flag. Note that the reads in the output bams are not exactly the same as the reads in the input bam. In the output bams the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
-  
-=======
 **NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site. For example, following command aggregates data from both strands and calculates new methylation frequency for each CpG (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
 
 ```
@@ -428,7 +418,6 @@ sed '1d' NanoMethPhase_HP1_MethylFrequency.tsv | awk -F'\t' '{if ($4=="-") {$2=$
 During DMA, dma module also aggregates all calls and methylated calls from both strands for each CpG ("ReadyForDSS" files) and then performs differential methylation analysis.  
 
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. Note that the reads in the output bams are not exactly the same as the reads in the input bam. In the output bams the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
->>>>>>> 389e476bcb9d280f5109d17c8223366e59f168cc
 
 **NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
   
@@ -589,12 +578,6 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
 
-<<<<<<< HEAD
-**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site.  During DMA, dma module aggregates all calls and methylated calls from both strands for each CpG (ReadyForDSS files) and then performs differential methylation analysis.  
-
-
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. bam2bis by default ignores sublementary reads, to include them add -is flag. Note that the reads in the output bams are not exactly the same as the reads in the input bam. In the output bams the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
-=======
 **NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site. For example, following command aggregates data from both strands and calculates new methylation frequency for each CpG (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
 
 ```
@@ -603,7 +586,6 @@ sed '1d' NanoMethPhase_HP1_MethylFrequency.tsv | awk -F'\t' '{if ($4=="-") {$2=$
 During DMA, dma module also aggregates all calls and methylated calls from both strands for each CpG ("ReadyForDSS" files) and then performs differential methylation analysis.  
 
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. Note that the reads in the output bams are not exactly the same as the reads in the input bam. In the output bams the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
->>>>>>> 389e476bcb9d280f5109d17c8223366e59f168cc
 
 **NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
   
