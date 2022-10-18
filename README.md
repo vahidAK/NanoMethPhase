@@ -8,7 +8,8 @@ Access [here](https://doi.org/10.1186/s13059-021-02283-5)
 Update
 =============
 Support for other methylation callers , in addition to Nanopolsih, including Megalodon, DeepSignal and Tombo has been added to NanoMethPhase.  
-previously, in the dma module, we added 1 unit to the start position of the CpG to convert it to one-based cordinate. However, we have changed it and the start cordinate will be as the input and if input is zero-based the DMRs will be also zero-based and if the input is one-based DMRs will be also one based. We changed this as it is possible to use dma module for other data not just nanomethphase outputs.
+previously, in the dma module, we added 1 unit to the start position of the CpG to convert it to one-based cordinate. However, we have changed it and the start cordinate will be as the input and if input is zero-based the DMRs will be also zero-based and if the input is one-based DMRs will be also one based. We changed this as it is possible to use dma module for other data not just nanomethphase outputs.  
+dma module update (10 Oct 2022): Increased scientific notation option in the DSS_DMA.R script (results in less scientific notation) to not have coordinates of DMRs with scientific notation (This could happen very rarely in rare cases however we increased scipen option to prevent this).  
 
 Overall Workflow
 =============
