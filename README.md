@@ -445,6 +445,7 @@ nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1
 
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
 callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.  
+Note: During DMA, for inputs with methylation from both strands like HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
 
 # Full Tutorial
 
@@ -612,7 +613,8 @@ nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1
 ```
 
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
-callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.
+callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.  
+Note: During DMA, for inputs with methylation from both strands like HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
 
 # Example:
 We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.  
