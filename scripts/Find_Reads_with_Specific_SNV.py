@@ -6,16 +6,15 @@ from collections import defaultdict
 from tqdm import tqdm
 from itertools import repeat
 
-parser = argparse.ArgumentParser(description='Extracting mutation in a 9 baseper window.')
-parser.add_argument("--input", "-i", action="store", type=str,required=True,help="The path to the input with mutation" 
-                    " Format must be chromosome\tZeroBased_mutation_position\tAltBase or provide a vcf file (File must end with .vcf)."
-                    "and just create it like methylation frequency file. NOTE: Cordinates must be zero-based") 
+parser = argparse.ArgumentParser(description='Extracting reads with the alt base at a SNV and print 9bp reference window.')
+parser.add_argument("--input", "-i", action="store", type=str,required=True,help="The path to the input bed like file or input vcf (File must end with .vcf). " 
+                    "NOTE: Input must contain only SNVs." 
+                    "If bed like is given, format must be chromosome\tZeroBased_mutation_position\tAltBase.") 
 parser.add_argument("--bam", "-b", action="store", type=str,required=True,help="The path to the alignment bam file") 
-parser.add_argument("--reference", "-r", action="store", type=str,required=True, default=None,help="The path to the reference file. File must be indexed by samtools faidx"
-                          "give the path to reference file. Fasta file must be already indexed using samtools faidx.")
+parser.add_argument("--reference", "-r", action="store", type=str,required=True, default=None,help="The path to the reference file. File must be indexed by samtools faidx")
 parser.add_argument("--mappingQuality", "-mq", action="store", type=int,default= 20,required=False,help="Cutt off for filtering out low quality mapped reads from bam. Default is 20")
 parser.add_argument("--threads", "-t", action="store", type=int,required=False, default=4,help="Number of threads")
-parser.add_argument("--chunk_size", "-rc", action="store", type=int,required=False, default=50,help="Number of reads send to each processes for parrallel processing. Default is 10.\n"
+parser.add_argument("--chunk_size", "-rc", action="store", type=int,required=False, default=50,help="Number of reads send to each processes for parrallel processing. Default is 50.\n"
                            "If you do not have enough memory use low numbers.")
 
 args = parser.parse_args()
