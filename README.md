@@ -136,18 +136,17 @@ required arguments:
                         path/to/directory/prefix
 
 one of these two are required arguments:
-  --vcf VCF, -v VCF     The path to the whatshap phased vcf file or if it is
-                        your second try and you have per read info file from
-                        the first try there is no need to give vcf file,
-                        instead give the path to the per read info file using
-                        --per_read option which will be significantly faster.
-                        If you give both vcf and per read file, per read file
-                        will be ignored
+  --vcf VCF, -v VCF     The path to the whatshap phased vcf file.
   --per_read PER_READ, -pr PER_READ
                         If it is your second try and you have per read info
                         file from the first try there is no need to give vcf
                         file, instead give the path to the per read info file.
-                        This will be significantly faster.
+                        This will be significantly faster. NOTE: Running with
+                        different mapping quality or include/exclude
+                        supplementary reads is not supported using per-read
+                        file. So, if you want to try with a different mapping
+                        qualiy or include/exclude supplementary reads you need
+                        to provide vcf file again and start over.
 
 conditional required arguments based on selected output format(s):
   --reference REFERENCE, -r REFERENCE
@@ -441,7 +440,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 | NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols etc.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols. However, running with different mapping quality or include/exclude supplementary reads in your next runs is **not supported** using per-read file and you need to start again with vcf file.  
   
 **3- Getting differentially methylated regions between haplotypes:**  
 
@@ -610,7 +609,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 | NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different thresholds etc.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for future runs, for example when you wish to phase with different threshols. However, running with different mapping quality or include/exclude supplementary reads in your next runs is **not supported** using per-read file and you need to start again with vcf file.  
   
 ### 4-3 Differential Methylation Analysis:
 
