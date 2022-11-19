@@ -1503,13 +1503,7 @@ def phase_parser(subparsers):
                           action="store",
                           type=str,
                           required=False,
-                          help="The path to the whatshap phased vcf file or "
-                          "if it is your second try and you have per read "
-                          "info file from the first try there is no need to "
-                          "give vcf file, instead give the path to the per "
-                          "read info file using --per_read option which will "
-                          "be significantly faster. If you give both vcf and "
-                          "per read file, per read file will be ignored")
+                          help="The path to the whatshap phased vcf file.")
     sp_input.add_argument("--per_read", "-pr",
                           action="store",
                           type=str,
