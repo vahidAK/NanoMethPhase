@@ -137,13 +137,7 @@ required arguments:
                         path/to/directory/prefix
 
 one of these two are required arguments:
-  --vcf VCF, -v VCF     The path to the whatshap phased vcf file or if it is
-                        your second try and you have per read info file from
-                        the first try there is no need to give vcf file,
-                        instead give the path to the per read info file using
-                        --per_read option which will be significantly faster.
-                        If you give both vcf and per read file, per read file
-                        will be ignored
+  --vcf VCF, -v VCF     The path to the whatshap phased vcf file.
   --per_read PER_READ, -pr PER_READ
                         If it is your second try and you have per read info
                         file from the first try there is no need to give vcf
