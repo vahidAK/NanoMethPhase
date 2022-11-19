@@ -1517,9 +1517,11 @@ def phase_parser(subparsers):
                           help="If it is your second try and you have per "
                           "read info file from the first try there is no need "
                           "to give vcf file, instead give the path to the per "
-                          "read info file. This will be significantly faster. NOTE: "
-                          "note that the minimum read mapping quality is not stored in per-read file"
-                          ". So, if you want to try with a different mapping qualiy than the first try you need"
+                          "read info file. This will be significantly faster. "
+                          "NOTE: Running with different mapping quality or "
+                          "include/exclude supplementary reads is not supported using per-read file"
+                          ". So, if you want to try with a different mapping qualiy or "
+                          "include/exclude supplementary reads you need"
                           " to provide vcf file again and start over.")
     sp_input = sub_phase.add_argument_group("conditional required arguments based"
                                             " on selected output format(s)")
