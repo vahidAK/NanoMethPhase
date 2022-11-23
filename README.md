@@ -537,7 +537,7 @@ If you have Trio data (Father, Mother, Child) you can use the script
 [Trio_To_PhaseVCF_4FemaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
 or
 [Trio_To_PhaseVCF_4MaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
-script to make a mock phased vcf file and use it as input for NanoMethPhase.
+script to make a mock phased vcf file and use it as input for NanoMethPhase. Make sure to keep only SNVs in your vcf files before using these scripts. We also recommend using high-quality PASS SNVs only.  
 
   
 **NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
