@@ -31,6 +31,6 @@ else
 	echo -e "Please insert arguments:\n
 	First argument is maternal's vcf Second is paternal's vcf, third is child's vcf forth is output prefixt.
 	Example: Trio_To_PhaseVCF_4MaleChild.sh Maternal_SNVs.vcf Paternal_SNVs.vcf Child_SNVs.vcf Output
-	Note: Make sure your input vcf files contain only SNVs. We also recommend using high-quality PASS SNVs only 
-	because there will be no filtering step to keep high quality Passed variants."
+	Note: We recommend using high-quality PASS SNVs vcf files as input. 
+	Note that there will be no filtering step to keep high quality PASS variants."
 fi
