@@ -536,7 +536,7 @@ If you have Trio data (Father, Mother, Child) you can use the script
 [Trio_To_PhaseVCF_4FemaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
 or
 [Trio_To_PhaseVCF_4MaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
-script to make a mock phased vcf file and use it as input for NanoMethPhase. Also, sometimes vcf files might contain homozygous reference genotypes (0/0) or other genotypes (e.g. ./.), so in this case keep only heterozygous and homozygous alternate genotypes in your input VCFs.  
+script to make a mock phased vcf file and use it as input for NanoMethPhase. We recommend using high-quality PASS SNVs vcf files as input. Also, sometimes vcf files might contain homozygous reference genotypes (0/0) or other genotypes (e.g. ./.), so in this case keep only heterozygous and homozygous alternate genotypes in your input VCFs.  
   
 **NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
 ## 4- Detecting Haplotype Methylome
