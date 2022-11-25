@@ -440,7 +440,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 | NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for next runs if you wish to try different thresholds. **However**, running with different mapping quality or include/exclude supplementary reads in your next runs is **NOT supported** using per-read file and you need to start again with vcf file.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for next runs if you wish to try different thresholds of options. **However**, running with different mapping quality or include/exclude supplementary reads in your next runs is **NOT supported** using per-read file and you need to start again with vcf file.  
   
 **3- Getting differentially methylated regions between haplotypes:**  
 
@@ -608,7 +608,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 | NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
 | Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for next runs if you wish to try different thresholds. **However**, running with different mapping quality or include/exclude supplementary reads in your next runs is **NOT supported** using per-read file and you need to start again with vcf file.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for next runs if you wish to try different thresholds of options. **However**, running with different mapping quality or include/exclude supplementary reads in your next runs is **NOT supported** using per-read file and you need to start again with vcf file.  
   
 ### 4-3 Differential Methylation Analysis:
 
