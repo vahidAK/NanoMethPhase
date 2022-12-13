@@ -45,18 +45,6 @@ import tabix
 import math
 from tqdm import tqdm
 
-
-def countReadsInBAM(filename):
-    stats = pysam.idxstats(filename)
-    nreads = 0
-    for row in stats.split("\n"):
-        row.rstrip("\r")
-        fields = row.split("\t")
-        if len(fields) > 2 and fields[0] != '*':
-            nreads += int(fields[2])
-    return nreads
-
-
 def getChromsFromBAM(filename):
     chroms = []
     stats = pysam.idxstats(filename)
@@ -152,6 +140,7 @@ def get_base_info(feed_list,
                         elif HP == '0|1' and read_base == ref:
                             read_HP_list.append([(*key_per_read,"HP1"),
                                         ':'.join(map(str,val + [ref]))])
+    samfile.close()
     return read_HP_list
 
 
@@ -347,7 +336,7 @@ def outputs(outformat,
                                 "end",
                                 "strand",
                                 "read_name",
-                                "log_lik_ratio\n"])
+                                "llr_Or_DeltaProb\n"])
         outCall1.write(headerCall)
         outCall2.write(headerCall)
         headerFreq = "\t".join(["chromosome",
@@ -388,11 +377,14 @@ def openalignment(alignment_file,
                 bamiter = bam.fetch(window_chrom)
                 count= bam.count(window_chrom)
             except:
+                warnings.warn("{} is not in the alignment "
+                              "file Or alignment is truncated or corrupt indexed."
+                              " Skipping it".format(window_chrom))
                 count= 0
                 bamiter= ""
     else:
         bamiter = bam.fetch(until_eof=True)
-        count = 0
+        count = None
     return bamiter, bam, count
 
 
@@ -776,9 +768,11 @@ def per_read_variant(vcf_dict,
                 if out_to_write:
                     perReadinfo.write('\t'.join(out_to_write)+'\n')
         else:
-            raise Exception("{} does not have any mapped reads in alignment "
-                          "file Or alignment is truncated or corrupt indexed.".format(chrom))
+            warnings.warn("{} in vcf file does not have any mapped reads in alignment "
+                          "file Or alignment is truncated or corrupt indexed."
+                          " Skipping it".format(chrom))
         per_read_hp.clear()
+        bam.close()
     perReadinfo.close()
     
 
@@ -991,7 +985,8 @@ def main_phase(args):
         (outHP1Sam, outHP2Sam, outHP12BisSam, outHP22BisSam,
                                    outCall1,outCall2,outFreq1,
                                    outFreq2)= outputs(outformat,
-                                   bam_for_write,out1,out2)
+                                                      bam_for_write,out1,out2)
+        bam_for_write.close()
         sys.stderr.write("Read Seperation Process Started\n")
         if args.window is not None:
             chrom_list= [args.window]
@@ -1202,7 +1197,7 @@ def main_phase(args):
                                     alignmentwriter(result, outHP12BisSam)
                                 else:
                                     alignmentwriter(result, outHP22BisSam)
-
+            bam.close()
         if 'bam' in outformat:
             outHP1Sam.close()
             outHP2Sam.close()
@@ -1269,7 +1264,7 @@ def main_phase(args):
     else:
         sys.stderr.write("There is no phased variant in your vcf file or "
                                      "Noe reads could be tagged.\n")
-
+    fasta.close()
 
 def main_bam2bis(args):
     motif = args.motif
@@ -1303,7 +1298,7 @@ def main_bam2bis(args):
                                 "end",
                                 "strand",
                                 "read_name",
-                                "log_lik_ratio\n"]))
+                                "llr_Or_DeltaProb\n"]))
         outFreq= open(out+"MethylationFrequency.tsv", 'w')
         outFreq.write("\t".join(["chromosome",
                                 "start",
@@ -1323,6 +1318,7 @@ def main_bam2bis(args):
     bamiter, bam, counts= openalignment(bam_file, args.window)
     outBisbam= pysam.AlignmentFile(out+"_Converted2Bisulfite.bam",
                                             "wb", template=bam)
+    bam.close()
     if args.window is None:
         chroms= sorted(getChromsFromBAM(bam_file))
     else:
@@ -1430,7 +1426,7 @@ def main_bam2bis(args):
                         for read in results:
                             if read is not None:
                                 alignmentwriter(read, outBisbam)
-
+        bam.close()
     outBisbam.close()
     if args.methylation:
         outCall.close()
@@ -1462,6 +1458,7 @@ def main_bam2bis(args):
                          "Number of converted reads: {}\n"
                          "".format(all_read, MappingQuality,
                                    high_quality_reads, converted_reads))
+    fasta.close()
 
 def main_dma(args):
     """
@@ -1686,7 +1683,7 @@ def phase_parser(subparsers):
                           action="store",
                           type=str,
                           required=True,
-                          help="The path to the whatshap phased vcf file")
+                          help="The path to the phased vcf file.")
     sp_input = sub_phase.add_argument_group("conditional required arguments based"
                                             " on selected output format(s)")
     sp_input.add_argument("--reference", "-r",
@@ -1715,7 +1712,7 @@ def phase_parser(subparsers):
                           required=False,
                           default=None,
                           help="If it is your second try and you have per read info"
-                               "file from the first try you can specify the per-read"
+                               " file from the first try you can specify the per-read"
                                " file to make the process faster. This also enables you "
                                "to try different threshols of options (-mv, -mbq, mq, -hr, -abq),"
                                " include exclude indels, include/exclude supp reads.")
@@ -1777,15 +1774,18 @@ def phase_parser(subparsers):
                           required=False,
                           default=20,
                           help=("Base quality that variants tagged to a haplotype "
-                                "shoud have compare to the other haplotype. "
-                                "When the average base quality of variants mapped"
-                                " to two haplotype for one read is equal or "
-                                "decision cannot be made Base on Average bq "
+                                "should have compare to the other haplotype. "
+                                "This will be used "
+                                "when the average base quality of variants mapped"
+                                " to two haplotypes for one read is not informative and"
+                                " decision cannot be made "
                                 "(e.g. when 10 variants of HP1 mapped to a read "
                                 "with average quality of 30, but only one variant "
-                                "from HP2 mapped to the same read with bq=35) "
-                                "Then, instead of quality count number of variants"
-                                " with quality more than average_base_quality."
+                                "from HP2 mapped to the same read with bq=35). "
+                                "Then, instead of considering average of qualities, "
+                                "the tool will count number of variants in both haplotypes "
+                                " that meet the given average_base_quality and uses"
+                                " the counts to make decision."
                                 " Default is >=20."))
     sp_input.add_argument("--mapping_quality", "-mq",
                           action="store",
@@ -1801,13 +1801,13 @@ def phase_parser(subparsers):
                           required=False,
                           default=1,
                           help=("minimum number of phased variants must a read "
-                                "have to be phased. Default= 1"))
+                                "have to be phased. Default is 1"))
     sp_input.add_argument("--threads", "-t",
                           action="store",
                           type=int,
                           required=False,
                           default=4,
-                          help="Number of parallel processes")
+                          help="Number of parallel processes. Default is 4")
     sp_input.add_argument("--chunk_size", "-cs",
                           action="store",
                           type=int,
@@ -1865,18 +1865,16 @@ def methyl_call_processor_parser(subparsers):
                                  "methylation call threshold for considering a site as "
                                  "methylated, unmethylated or ambiguous in methylation call file. "
                                  "Default is nanopolish:2 which is when methylation"
-                                 " calling performed by nanopolish and llr >= 2 will be considered "
-                                 "as methylated and llr <= -2 as unmethylated, any thing "
+                                 " calling performed by nanopolish and a CpG with llr >= 2 will be considered "
+                                 "as methylated and llr <= -2 as unmethylated, anything "
                                  "in between will be considered as ambiguous call."
-                                 " For nanopolish this call thresold values are in the log_lik_ratio"
-                                 " column.\n"
                                  "For megalodon, call thresold will be delta probability "
                                  "(prob_methylated - prob_unmethylated) "
                                  "which is e^mod_log_prob - (1 - e^mod_log_prob). "
                                  "For example, with a call threshold of 0.6 (0.8-0.2) CpGs "
                                  "between 0.8 and 0.2 probability"
-                                 " will be considered as ambiguous and more than 0.8 as methylated "
-                                 "and less than 0.2 as unmethylated.\n"
+                                 " will be considered as ambiguous and >=0.8 as methylated "
+                                 "and <=0.2 as unmethylated.\n"
                                  "For deepsignal, as for megalodon, this call threshold is delta probability"
                                  " (prob_methylated - prob_unmethylated)."
                                  "NOTE: Megalodon per-read text file must be for only 5mC CpGs "
@@ -1894,7 +1892,7 @@ def methyl_call_processor_parser(subparsers):
                            type=int,
                            required=False,
                            default=4,
-                           help="Number of parallel processes")
+                           help="Number of parallel processes. Default is 4")
     smp_input.add_argument("--chunk_size", "-cs",
                            action="store",
                            type=int,
@@ -1978,7 +1976,7 @@ def bam2bis_parser(subparsers):
                           type=int,
                           required=False,
                           default=4,
-                          help="Number of parallel processes")
+                          help="Number of parallel processes. Default is 4")
     sbb_input.add_argument("--chunk_size", "-cs",
                           action="store",
                           type=int,
@@ -2135,7 +2133,7 @@ def dma_parser(subparsers):
                                   "smoothing=FALSE for sparser data such "
                                   "like from RRBS or hydroxyl-methylation "
                                   "data (TAB-seq). see -ed option and DSS R package details "
-                                  " for more information."
+                                  " for more information. Default is TRUE."
                                   " It is used in DSS DMLtest function."))
     sdma_input.add_argument("--equal_disp", "-ed",
                             action="store",

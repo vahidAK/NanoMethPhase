@@ -2,92 +2,56 @@
 ![](docs/images/phased_IGV.png)  
 =============
 **Phase long reads and CpG methylations from Oxford Nanopore Technologies**  
-**Citation:** Akbari, V., Garant, JM., O’Neill, K. et al. Megabase-scale methylation phasing using nanopore long reads and NanoMethPhase. Genome Biol 22, 68 (2021).
+**Citation:** Akbari, V., Garant, JM., O'Neill, K. et al. Megabase-scale methylation phasing using nanopore long reads and NanoMethPhase. Genome Biol 22, 68 (2021).
 Access [here](https://doi.org/10.1186/s13059-021-02283-5)  
   
-UPDATE
-=============  
-Support for other methylation callers , in addition to Nanopolsih, including Megalodon, DeepSignal and Tombo has been added to NanoMethPhase. However, note that NanoMethPhase primarily developed using Nanopolish, so this is the preferred methylation caller. Currently, this update is accessible through **iss5 branch**. See issue [#5](https://github.com/vahidAK/NanoMethPhase/issues/5) for more info.  
-
-[f5c](https://github.com/hasindu2008/f5c) versions >=v0.7 outputs similar columns as later nanopolish versions (as follows) during methylation calling, therefore it can also be used for methylation calling.  
-
-```
-chromosome	strand	start	end	read_name	log_lik_ratio	log_lik_methylated	log_lik_unmethylated	num_calling_strands	num_motifs	sequence
-```
-
-**NanoMethPhase dma module update** (23 May 2022): Previously, in the dma module, we added 1 unit to the start position of the CpG to convert it to one-based cordinate. This resulted in when doing dma on NanoMethPhase's results (which are 0-based) the cordinates in the dma module's results be 1-based. However, we have changed it and the start cordinate will be as the input and if input is zero-based the dma module's results will be also zero-based and if the input is one-based dma module's results will be also one-based. We changed this as it is possible to use dma module for other data not just nanomethphase outputs.  
-**dma module update** (10 Oct 2022): Increased scientific notation option in the DSS_DMA.R script (results in less scientific notation) to not have coordinates of DMRs with scientific notation (This could happen very rarely in rare cases however we increased scipen option to prevent this).  
-
 Overall Workflow
 =============
-![](docs/images/NanoMethPhaseFlowChart.png)
+<img src="docs/images/NanoMethPhaseFlowChart.png" width="600" height="600">
 
 Table of Contents
 =================
 
 * **[Installation](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#installation)**
-  * [From source](https://github.com/vahidAK/NanoMethPhase#from-source)
-  * [Using pip](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#using-pypi-repository-pip)
-  * [Using Docker](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#using-docker-image)
 * **[NanoMethPhase Modules](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#nanomethphase-modules)**
   * [methyl_call_processor](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#methyl_call_processor)
   * [phase](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#phase)
   * [dma](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#dma)
   * [bam2bis](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#bam2bis)
-* **[Quickstart](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#quickstart)**
 * **[Full Tutorial](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#full-tutorial)**
   * [Methylation Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#1--methylation-calling)
   * [Variant Calling](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#2--variant-calling)
-  * [SNV Phasing](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
+  * [Phasing Detected Variants](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#3--phasing-of-detected-snvs)
   * [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)  
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation
-**NOTE:** NanoMethPhase has dependencies which must be installed. Dependencies are in the [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) file. As mentioned below in the installation from source you can use this file to create a conda environment and install all the dependencies.  
 
-## From [source](https://github.com/vahidAK/NanoMethPhase.git)
-**RECOMMENDED APPROACH**  
-
+To use from source (git repo):
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
 cd NanoMethPhase
 conda env create -f envs/environment.yaml
 conda activate nanomethphase
-./nanomethphase.py
+python nanomethphase.py
 ```
-## Using [pypi repository](https://pypi.org/project/nanomethphase/) (pip)
-
+To use latest released version:
 ```
-pip install nanomethphase
-```
+wget https://github.com/vahidAK/NanoMethPhase/archive/refs/tags/v1.1.0.zip
+unzip v1.1.0.zip
+cd NanoMethPhase-1.1.0/
+conda env create -f envs/environment.yaml
+conda activate nanomethphase
+python nanomethphase.py
+```  
 
-## Using [Docker image](https://hub.docker.com/r/jmgarant/nanomethphase)
-
-It ships with complementary softwares SNVoter, Nanopolish, Clair (We highly recommend the new Clair3 which you need to install yourself), WhatsHap &
-Tabix. **The container does not natively support interactive usage**, please
-refer to the workaround below.
-
-```bash
-docker pull jmgarant/nanomethphase
-
-# usage example:
-docker run -t jmgarant/nanomethphase nanomethphase
-docker run -t jmgarant/nanomethphase snvoter
-docker run -t jmgarant/nanomethphase nanopolish
-docker run -t jmgarant/nanomethphase clair
-docker run -t jmgarant/nanomethphase whatshap
-docker run -t jmgarant/nanomethphase tabix
-
-# workaround for interactive use
-docker run -it jmgarant/nanomethphase bash -il
-```
 # NanoMethPhase Modules
 ## methyl_call_processor: 
 Preparing methylation call file for methylation phasing or conversion of a bam file to whole genome bisulfite sequencing format for visualization in IGV.  
 ```
 usage: nanomethphase methyl_call_processor --MethylCallfile METHYLCALLFILE
                                            [-h]
-                                           [--callThreshold CALLTHRESHOLD]
+                                           [--tool_and_callthresh TOOL_AND_CALLTHRESH]
                                            [--motif MOTIF] [--threads THREADS]
                                            [--chunk_size CHUNK_SIZE]
 
@@ -97,18 +61,37 @@ bgzip > [FILE].bed.gz && tabix -p bed [FILE].bed.gz
 
 required arguments:
   --MethylCallfile METHYLCALLFILE, -mc METHYLCALLFILE
-                        The path to the nanopolish methylation call file from.
+                        The path to the per-read methylation call file.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --callThreshold CALLTHRESHOLD, -ct CALLTHRESHOLD
-                        Quality threshold for considering a site as methylated
-                        in methylation call file. Default is 2.0
+  --tool_and_callthresh TOOL_AND_CALLTHRESH, -tc TOOL_AND_CALLTHRESH
+                        Software you have used for methylation calling
+                        (nanoplish, megalodon, deepsignal):methylation call
+                        threshold for considering a site as methylated,
+                        unmethylated or ambiguous in methylation call file.
+                        Default is nanopolish:2 which is when methylation
+                        calling performed by nanopolish and a CpG with llr >=
+                        2 will be considered as methylated and llr <= -2 as
+                        unmethylated, anything in between will be considered
+                        as ambiguous call.For megalodon, call thresold will be
+                        delta probability (prob_methylated -
+                        prob_unmethylated) which is e^mod_log_prob - (1 -
+                        e^mod_log_prob). For example, with a call threshold of
+                        0.6 (0.8-0.2) CpGs between 0.8 and 0.2 probability
+                        will be considered as ambiguous and >=0.8 as
+                        methylated and <=0.2 as unmethylated. For deepsignal,
+                        as for megalodon, this call threshold is delta
+                        probability (prob_methylated -
+                        prob_unmethylated).NOTE: Megalodon per-read text file
+                        must be for only 5mC CpGs . Do not use per-read text
+                        file where there are predictions for 2 or more
+                        modifications (e.g. 5mC and 5hmC)
   --motif MOTIF, -mf MOTIF
                         The motif you called methylation for (cpg), Currently
                         just cpg.
   --threads THREADS, -t THREADS
-                        Number of parallel processes
+                        Number of parallel processes. Default is 4
   --chunk_size CHUNK_SIZE, -cs CHUNK_SIZE
                         Number of reads send to each proccessor. Default is
                         100
@@ -116,17 +99,18 @@ optional arguments:
 ## phase:  
 Phasing reads and CpG Methylation data to the coresponding haplotypes.  
 ```
-usage: nanomethphase phase --bam BAM --output OUTPUT [--vcf VCF]
-                           [--per_read PER_READ] [--reference REFERENCE]
-                           [--methylcallfile METHYLCALLFILE] [-h]
-                           [--outformat OUTFORMAT] [--window WINDOW]
-                           [--motif MOTIF] [--hapratio HAPRATIO]
+usage: nanomethphase phase --bam BAM --output OUTPUT --vcf VCF
+                           [--reference REFERENCE]
+                           [--methylcallfile METHYLCALLFILE]
+                           [--per_read PER_READ] [-h] [--outformat OUTFORMAT]
+                           [--window WINDOW] [--motif MOTIF]
+                           [--hapratio HAPRATIO]
                            [--min_base_quality MIN_BASE_QUALITY]
                            [--average_base_quality AVERAGE_BASE_QUALITY]
                            [--mapping_quality MAPPING_QUALITY]
-                           [--min_SNV MIN_SNV] [--threads THREADS]
-                           [--chunk_size CHUNK_SIZE] [--include_supplementary]
-                           [--overwrite]
+                           [--min_variant MIN_VARIANT] [--threads THREADS]
+                           [--chunk_size CHUNK_SIZE] [--include_indels]
+                           [--include_supplementary] [--overwrite]
 
 Phasing reads and Methylation
 
@@ -135,19 +119,7 @@ required arguments:
   --output OUTPUT, -o OUTPUT
                         The path to directory and prefix to save files. e.g
                         path/to/directory/prefix
-
-one of these two are required arguments:
-  --vcf VCF, -v VCF     The path to the whatshap phased vcf file.
-  --per_read PER_READ, -pr PER_READ
-                        If it is your second try and you have per read info
-                        file from the first try there is no need to give vcf
-                        file, instead give the path to the per read info file.
-                        This will be significantly faster. NOTE: Running with
-                        different mapping quality or include/exclude
-                        supplementary reads is not supported using per-read
-                        file. So, if you want to try with a different mapping
-                        qualiy or include/exclude supplementary reads you need
-                        to provide vcf file again and start over.
+  --vcf VCF, -v VCF     The path to the phased vcf file.
 
 conditional required arguments based on selected output format(s):
   --reference REFERENCE, -r REFERENCE
@@ -162,6 +134,13 @@ conditional required arguments based on selected output format(s):
                         Module.
 
 optional arguments:
+  --per_read PER_READ, -pr PER_READ
+                        If it is your second try and you have per read info
+                        file from the first try you can specify the per-read
+                        file to make the process faster. This also enables you
+                        to try different threshols of options (-mv, -mbq, mq,
+                        -hr, -abq), include exclude indels, include/exclude
+                        supp reads.
   -h, --help            show this help message and exit
   --outformat OUTFORMAT, -of OUTFORMAT
                         What type of output you want (bam,bam2bis,methylcall).
@@ -183,38 +162,45 @@ optional arguments:
                         The motif you called methylation for (cpg), Currently
                         just cpg.
   --hapratio HAPRATIO, -hr HAPRATIO
-                        0-1 .The threshold ratio between haplotype to tag as
-                        H1 or H2. Default is <= 0.75
+                        0-1 .The threshold ratio (# of SNVs from one over the
+                        other) between haplotype to tag as H1 or H2 (H2/H1
+                        when #SNVs at H1 > H2 and H1/H2 when #SNVs at H2 >
+                        H1). Default is <= 0.75
   --min_base_quality MIN_BASE_QUALITY, -mbq MIN_BASE_QUALITY
                         Only include bases with phred score higher or equal
                         than this option. Default is >=7.
   --average_base_quality AVERAGE_BASE_QUALITY, -abq AVERAGE_BASE_QUALITY
-                        Base quality that SNVs tagged to a haplotype shoud
-                        have compare to the other haplotype. When the average
-                        base quality of SNVs mapped to two haplotype for one
-                        read is equal or decision cannot be made Base on
-                        Average bq (e.g. when 10 SNVs of HP1 mapped to a read
-                        with average quality of 30, but only one SNV from HP2
-                        mapped to the same read with bq=35) Then, instead of
-                        quality count number of SNVs with quality more than
-                        average_base_quality. Default is >=20.
+                        Base quality that variants tagged to a haplotype
+                        should have compare to the other haplotype. This will
+                        be used when the average base quality of variants
+                        mapped to two haplotypes for one read is not
+                        informative and decision cannot be made (e.g. when 10
+                        variants of HP1 mapped to a read with average quality
+                        of 30, but only one variant from HP2 mapped to the
+                        same read with bq=35). Then, instead of considering
+                        average of qualities, the tool will count number of
+                        variants in both haplotypes that meet the given
+                        average_base_quality and uses the counts to make
+                        decision. Default is >=20.
   --mapping_quality MAPPING_QUALITY, -mq MAPPING_QUALITY
                         An integer value to specify thereshold for filtering
                         reads based om mapping quality. Default is >=20
-  --min_SNV MIN_SNV, -ms MIN_SNV
-                        minimum number of phased SNVs must a read have to be
-                        phased. Default= 2
+  --min_variant MIN_VARIANT, -mv MIN_VARIANT
+                        minimum number of phased variants must a read have to
+                        be phased. Default is 1
   --threads THREADS, -t THREADS
-                        Number of parallel processes
+                        Number of parallel processes. Default is 4
   --chunk_size CHUNK_SIZE, -cs CHUNK_SIZE
                         Number of reads send to each proccessor. Default is
                         100
+  --include_indels, -ind
+                        Also include indels for read phasing to haplotypes.
   --include_supplementary, -is
                         Also include supplementary reads
   --overwrite, -ow      If output files exist overwrite them
 ```  
 ## dma:
-To perform differential Methylation analysis for two group comparison. To detect differentially methylated regions between haplotypes.  
+To perform differential Methylation analysis for two group comparison. It is a wrapper for DSS R package to detect differentially methylated regions between haplotypes.  
 ```
 usage: nanomethphase dma --case CASE --control CONTROL --out_dir OUT_DIR
                          --out_prefix OUT_PREFIX [-h] [--columns COLUMNS]
@@ -233,14 +219,16 @@ phased frequency results) using DSS R package.
 required arguments:
   --case CASE, -ca CASE
                         The path to the tab delimited input methylation
-                        frequency or ready input case file(s). If multiple
-                        files, files must be in the same directory and enter
-                        them comma seperates (e.g. file1,file2,file3)
+                        frequency or ready input case file(s) (First rwo is
+                        header which will be ignored). If multiple files,
+                        files must be in the same directory and give the path
+                        to the directory.
   --control CONTROL, -co CONTROL
                         The path to the tab delimited input methylation
-                        frequency or ready input control file(s). If multiple
-                        files, files must be in the same directory and enter
-                        them comma seperates (e.g. file1,file2,file3)
+                        frequency or ready input control file(s) (First rwo is
+                        header which will be ignored). If multiple files,
+                        files must be in the same directory and give the path
+                        to the directory.
   --out_dir OUT_DIR, -o OUT_DIR
                         The path to the output directory
   --out_prefix OUT_PREFIX, -op OUT_PREFIX
@@ -271,57 +259,70 @@ optional arguments:
   --dis_merge DIS_MERGE, -dm DIS_MERGE
                         When two DMRs are very close to each other and the
                         distance (in bps) is less than this number, they will
-                        be merged into one. Default is 1500 bps.
+                        be merged into one. Default is 100 bps. It is used in
+                        DSS callDMR function. See dma section notes for more
+                        details.
   --minlen MINLEN, -ml MINLEN
                         Minimum length (in basepairs) required for DMR.
-                        Default is 100 bps.
+                        Default is 100 bps. It is used in DSS callDMR
+                        function.
   --minCG MINCG, -mcg MINCG
                         Minimum number of CpG sites required for DMR. Default
-                        is 15.
+                        is 15. It is used in DSS callDMR function.
   --smoothing_span SMOOTHING_SPAN, -sms SMOOTHING_SPAN
                         The size of smoothing window, in basepairs. Default is
-                        500.
+                        500. It is used in DSS DMLtest function.
   --smoothing_flag SMOOTHING_FLAG, -smf SMOOTHING_FLAG
-                        TRUE/FALSE. The size of smoothing window, in
-                        basepairs. Default is TRUE. We recommend to use
-                        smoothing=TRUE for whole-genome BS-seq data, and
-                        smoothing=FALSE for sparser data such like from RRBS
-                        or hydroxyl-methylation data (TAB-seq). If there is
-                        not biological replicate, smoothing=TRUE is required.
-                        Default is TRUE
+                        TRUE/FALSE. A flag to indicate whether to apply
+                        smoothing in estimating mean methylation levels. It is
+                        recommended to use smoothing=TRUE for whole-genome BS-
+                        seq data, and smoothing=FALSE for sparser data such
+                        like from RRBS or hydroxyl-methylation data (TAB-seq).
+                        see -ed option and DSS R package details for more
+                        information. Default is TRUE. It is used in DSS
+                        DMLtest function.
   --equal_disp EQUAL_DISP, -ed EQUAL_DISP
-                        TRUE/FALSE. When there is no biological replicate in
-                        one or both treatment groups, users can either (1)
-                        specify equal.disp=TRUE, which assumes both groups
-                        have the same dispersion, then the data from two
-                        groups are combined and used as replicates to estimate
+                        TRUE/FALSE. A flag to indicate whether the dispersion
+                        in two groups are deemed equal or not. Default is
+                        FALSE and the dispersion shrinkages are performed on
+                        two conditions independently. More info on -ed and
+                        -smf: When there is no biological replicate in one or
+                        both treatment groups, users can either (1) specify
+                        equal.disp=TRUE, which assumes both groups have the
+                        same dispersion, then the data from two groups are
+                        combined and used as replicates to estimate
                         dispersion; or (2) specify smoothing=TRUE, which uses
                         the smoothed means (methylation levels) to estimate
                         dispersions via a shrinkage estimator. This smoothing
                         procedure uses data from neighboring CpG sites as
                         "pseudo-replicate" for estimating biological variance.
-                        Default is FALSE
+                        It is used in DSS DMLtest function.
   --pval_cutoff PVAL_CUTOFF, -pvc PVAL_CUTOFF
-                        A threshold of p-values for calling DMR. Loci with
-                        p-values less than this threshold will be picked and
-                        joint to form the DMRs. See 'details' for more
-                        information. Default is 0.001
+                        A threshold of p-values for calling DMLs and DMRs.
+                        When delta is not specified, Loci with p-values less
+                        than this threshold will be picked as DML and also
+                        joint to form the DMRs. See DSS R package 'details'
+                        for more information for this regarding DMLs and DMRs.
+                        Default is 0.001. It is used in DSS callDML and
+                        callDMR functions.
   --delta_cutoff DELTA_CUTOFF, -dc DELTA_CUTOFF
-                        A threshold for defining DMR. In DML detection
-                        procedure, a hypothesis test that the two groups means
-                        are equal is conducted at each CpG site. Here if
-                        'delta' is specified, the function will compute the
-                        posterior probability that the difference of the means
-                        are greater than delta, and then construct DMR based
-                        on that. This only works when the test results are
-                        from 'DMLtest', which is for two-group comparison.
-                        Default is 0
+                        A threshold for defining DMLs and DMRs. In DML
+                        detection procedure, a hypothesis test that the two
+                        groups means are equal is conducted at each CpG site.
+                        Here if 'delta' is specified, the function will
+                        compute the posterior probability that the difference
+                        of the means are greater than delta, and then call DML
+                        and construct DMR based on that. This only works when
+                        the test results are from 'DMLtest', which is for two-
+                        group comparison. See DSS R package for more
+                        information. Default is 0. It is used in DSS callDML
+                        and callDMR functions.
   --pct_sig PCT_SIG, -pct PCT_SIG
                         In all DMRs, the percentage of CG sites with
                         significant p-values (less than p.threshold) must be
                         greater than this threshold. Default is 0.5. This is
                         mainly used for correcting the effects of merging of
-                        nearby DMRs.
+                        nearby DMRs. It is used in DSS callDMR function.
   --overwrite, -ow      If output files exist overwrite them
 ```  
 ## bam2bis:
@@ -363,7 +364,7 @@ optional arguments:
   --methylation, -met   Output methylation call and frequency for converted
                         reads.
   --threads THREADS, -t THREADS
-                        Number of parallel processes
+                        Number of parallel processes. Default is 4
   --chunk_size CHUNK_SIZE, -cs CHUNK_SIZE
                         Number of reads send to each proccessor. Default is
                         100
@@ -371,102 +372,46 @@ optional arguments:
                         Also include supplementary reads
   --overwrite, -ow      If output files exist overwrite it
 ```  
-# Quickstart
-
-If you have your methylation call data and phased vcf file you can get the
-haplotype methylome via:
-
-**1- Processing and indexing methylation call file**
-
-```
-nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -k2,2n -k3,3n | bgzip > MethylationCall.bed.gz && tabix -p bed MethylationCall.bed.gz
-```
-
-**2- Getting haplotype methylome:**
-
-```
-nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
-```  
-**NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This can result in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag. 
-**NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
-You can select 3 output options:
-
-***bam***: output phased bam files
-
-***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:
-
-| **Shorten**   | **Description** |
-| ------------: | ----------------------------------------------------------------- |
-| chromosome    | Chromosome name.                                                  |
-| start         | Zero-Based start position of CpG.                                 |
-| end           | Zero-Based end position of CpG.                                   |
-| strand        | Strand.                                                           |
-| read_name     | Read ID.                                                          |
-| log_lik_ratio | llr from nanopolish given to each CpG as being methylated or not. |
-
-The headers for methylation frequency files are as follow:
-
-| **Shorten**   | **Description** |
-| ------------: | ---------------------------------------------------- |
-| chromosome    | Chromosome name.                                     |
-| start         | Zero-Based start position of CpG.                    |
-| end           | Zero-Based end position of CpG.                      |
-| strand        | Strand.                                              |
-| NumOfAllCalls | Number of all called CpGs.                           |
-| NumOfModCalls | Number of all CpGs that called as methylated.        |
-| MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
-
-**NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site. For example, following command aggregates data from both strands and calculates new methylation frequency for each CpG (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
-
-```
-sed '1d' NanoMethPhase_HP1_MethylFrequency.tsv | awk -F'\t' '{if ($4=="-") {$2=$2-1;$3=$3-1}; print $1,$2,$3,$5,$6}' OFS='\t' | sort -k1,1 -k2,2n | datamash -g1,2,3 sum 4,5 | awk -F'\t' '{print $0,$5/$4}' OFS='\t' | sed '1i chromosome\tstart\tend\tNumOfAllCalls\tNumOfModCalls\tMethylFreq' > HP1_MethylFrequency.tsv
-```
-During DMA, dma module also aggregates all calls and methylated calls from both strands for each CpG ("ReadyForDSS" files) and then performs differential methylation analysis.  
-
-***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. Note that the reads in the output bams are not exactly the same as the reads in the input bam. In the output bams the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
-
-**NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
-  
-| **Shorten**             | **Description** |
-| ----------------------: | ----------------------------------------------------------------------------------------------------------------------- |
-| chromosome              | Chromosome that read mapped to.                                                                                         |
-| ReadRefStart            | Zero-Based start position where the read mapped.                                                                        |
-| ReadRefEnd              | Zero-Based end position where the read mapped.                                                                          |
-| ReadID                  | Read ID.                                                                                                                |
-| strand                  | Strand.                                                                                                                 |
-| ReadFlag                | Bitwise flag of the read.                                                                                               |
-| ReadLength              | The length of mapped read.                                                                                              |
-| Haplotype               | Haplotype status of SNVs mapped to the read (for each read SNVs from each haplotype will be written in separate lines). |
-| NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
-| Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
-                       
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for next runs if you wish to try different thresholds of options. **However**, running with different mapping quality or include/exclude supplementary reads in your next runs is **NOT supported** using per-read file and you need to start again with vcf file.  
-  
-**3- Getting differentially methylated regions between haplotypes:**  
-
-```
-nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -o <output directory> -op <output Prefix>
-```
-
-We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
-callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.  
-Note: During DMA, for inputs with methylation from both strands like HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
 
 # Full Tutorial
 
 In order to get the phased methylome you also need the following third-party
 software:
 
-[Nanopolish](https://github.com/jts/nanopolish) : To call CpG methylation.
+Nanopolish, f5c >=v0.7, Megalodon, or DeepSignal to call CpG methylation. Note that when NanoMethPhase phases methylation, it matches the read coordinates from methylcall file to the read coordinates from bam file. Therefore, the optimal results will be when the same bam used for methylation calling is used for NanoMethPhase phasing. This is the case for methylation callers such as nanopolsih and f5c because they need an input bam file to call methylation, so the same bam can be used for NanoMethPhase as well. If you use megalodon, you can also specify the appropriate option to tell megalodon to also outputs the bam file that it uses to call methylation and use this bam for NanoMethPhase for optimal results.  
 
-New development of Clair, [Clair3](https://github.com/HKU-BAL/Clair3) or other variant callers: To call
-variants for your sample. Alternatively, you might already have variant calling
-data for example from Illumina sequencing.
+Clair3 or other variant callers to call variants for your sample. Alternatively, you might already have variant calling data for example from short-read sequencing.
 
-[WhatsHap](https://github.com/whatshap/whatshap): To phase single nucleotide
-variants.
+WhatsHap to phase variants. You may use other phasing tools or phased vcf input, however the phase information for the phased heterozygous variants, that are used by NanoMethPhase, must be indicated by 0|1 or 1|0 in the start of 10th column of the vcf file.  
+
+Output Per-read methylation call file from the current versions of aforementioned methylation callers are compatible with NanoMethPhase. However, here are some more information for per-read methylation call input compatibility:  
+For nanopolish or f5c, as long as the version you are using produces the following columns and the CpG coordinates are zero-based and coordinates for both strands is based on positive strand (positions for the CpG from both strands are the same) then the file is compatible:
+```
+chromosome	strand	start	end	read_name	log_lik_ratio	log_lik_methylated	log_lik_unmethylated	num_calling_strands	num_motifs	sequence
+chr2	+	200000365	200000365	50152360-5abb-4e1f-9ce0-c08a49d65b57	3.91	-142.10	-146.01	1	1	GTGAACGCTTT
+chr2	+	200000776	200000776	50152360-5abb-4e1f-9ce0-c08a49d65b57	-20.59	-243.72	-223.13	1	1	TAACTCGATTT
+chr2	-	200000365	200000365	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	4.93	-257.29	-262.22	1	1	GTGAACGCTTT
+chr2	-	200000776	200000776	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	-11.09	-225.59	-214.50	1	1	TAACTCGATTT
+```
+For megalodon, as long as the version you are using has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than positive strand then the file is compatible (The methylation call file must be only for methylation. Do not use per-read methylation file that has multiple modification calls, e.g. 5mC and 5hmC):
+```
+read_id	chrm	strand	pos	mod_log_prob	can_log_prob	mod_base
+56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21488565        -0.9126647710800171     -0.5132502558405262     m
+56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21486004        -0.8042076826095581     -0.5931974211226271     m
+2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21488566        -3.271272659301758      -0.03869726232984402    m
+2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21486005        -4.3451995849609375     -0.013053750265459633   m
+```
+For DeepSignal, as long as the version you are using has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than the positive strand then the file is compatible:
+```
+chrom   pos     strand  pos_in_strand   readname        read_strand     prob_0  prob_1  called_label    k_mer
+chr11	2669073	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.09740365	0.90259635	1	TACCCTGCCGTATCAGT
+chr11	2669107	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.13432296	0.865677	1	ACTGGCTACGTGTGGCT
+chr11	2669074	-	-1	12652f63-7676-4ad8-b7bf-af1aec4b282d	t	0.13398732	0.8660127	1	CACTGATACGGCAGGGT
+chr11	2669108	-	-1	12652f63-7676-4ad8-b7bf-af1aec4b282d	t	0.12144542	0.87855464	1	GAGCCACACGTAGCCAG
+```  
 
 ## 1- Methylation Calling
+Here we use nanopolish
 
 ### 1-1 indexing fastq file and fast5 files:
 
@@ -486,9 +431,7 @@ For the full tutorial please refer to
 [Nanopolish](https://github.com/jts/nanopolish) page on GitHub.
 
 ## 2- Variant Calling
-
-### 2-1 [Clair3](https://github.com/HKU-BAL/Clair3) can be used for variant calling and Clair3 is recommended instead of Clair.
-To call variants using Clair3 run:
+Here we use Clair3
 
 ```
 run_clair3.sh --bam_fn=/path/to/Nanopore_aligned_reads.bam \
@@ -497,55 +440,39 @@ run_clair3.sh --bam_fn=/path/to/Nanopore_aligned_reads.bam \
   --threads=<# of threads> --platform=ont \
   --model_path=/path/to/model
 ```
-After variant calling the results will be in merge_output.vcf.gz file in the output directory. You then need to filter variants variants:  
+After variant calling the results will be in merge_output.vcf.gz file in the output directory. You can further filter this file to keep PASS variants:  
 ```
 gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $7=="PASS"' > PassedVariants.vcf
 ```  
 Or if you want to filter based on a quaity threshold
 ```
-gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $6 > <quality threshold>' > HighQualityVariants.vcf
+gunzip -c /path/to/output/directory/merge_output.vcf.gz | awk '$1 ~ /^#/ || $6 > <quality threshold>' > QualityFilteredVariants.vcf
 ```
-
-### 2-2 If you use [Clair](https://github.com/HKU-BAL/Clair) to call variants.
-
-```
-for i in chr{1..22} chrX chrY; do callVarBam --chkpnt_fn <path_to_model_file> --ref_fn <reference_genome.fa> --bam_fn <sorted_indexed.bam> --ctgName $i --sampleName <your_sample_name> --call_fn $i".vcf" --threshold 0.2 --samtools <path_to_executable_samtools_software> --pypy <path_to_executable_pypy > --threads <number_of_threads>
-```
-
-After variant calling, you can select only SNVs which will be used for phasing:
-```
-awk '$4 != "." && $5 != "." && length($4) == 1 && length($5) == 1 && $6 > <the_variant_calling_quality_threshold>' variants.vcf > HighQualitySNVs.vcf
-```
-If you are calling variants from low coverage nanopore data (<30x) using Clair, you can also use our other tool [SNVoter](https://github.com/vahidAK/SNVoter)  on all clair detected SNVs (do not filter for variant call quality) to improve SNV detection.  
-
-**NOTE:** You can use other variant callers or varinat call data from other sorces.  
-
-## 3- Phasing of detected SNVs
-
-If you have your SNVs data available you need to phase them using
-[WhatsHap](https://github.com/whatshap/whatshap).
+## 3- Phasing Detected Variants
+Here we use WhatsHap to phase variants
 
 ```
 whatshap phase --ignore-read-groups --reference reference.fa -o whatshap_phased.vcf input.vcf sorted_indexed.bam
+```
+This wil only phase SNVs, to also phase indels you can add ```--indels ``` option:  
+```
+whatshap phase --ignore-read-groups --indels --reference reference.fa -o whatshap_phased.vcf input.vcf sorted_indexed.bam
 ```
 
 For the full tutorial please refer to
 [WhatsHap](https://github.com/whatshap/whatshap) page on GitHub.
 
-If you have Trio data (Father, Mother, Child) you can use the script
-[Trio_To_PhaseVCF_4FemaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
-or
-[Trio_To_PhaseVCF_4MaleChild.sh](https://github.com/vahidAK/NanoMethPhase/tree/master/scripts)
-script to make a mock phased vcf file and use it as input for NanoMethPhase. We recommend using high-quality PASS SNVs vcf files as input. Also, sometimes vcf files might contain homozygous reference genotypes (0/0) or other genotypes (e.g. ./.), so in this case keep only heterozygous and homozygous alternate genotypes in your input VCFs.  
-  
-**NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
+
+**NOTE:** NanoMethPhase requires a single sample vcf file in which phase information for the het variants in the 10th column indicated by "|" (i.e. 0|1 or 1|0).  
+
 ## 4- Detecting Haplotype Methylome
 
-### 4-1 First you need to phase process methylation call file from Nanopolish.
+### 4-1 First you need to process and index the methylation call file.
 
 ```
 nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -k2,2n -k3,3n | bgzip > MethylationCall.bed.gz && tabix -p bed MethylationCall.bed.gz
-```
+```  
+See nanomethphase methyl_call_processor help for more information and how to run it for other methylation callers.
 
 ### 4-2 Getting haplotype methylome:
 
@@ -553,35 +480,36 @@ nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -
 nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
 ```  
 
-**NOTE:** NanoMethPhase by default consideres reads with at least 2 phased SNV. This results in ignoring about 25% of the reads, you can set this number to 1 using -ms flag to include those reads. Moreover, by default sublementary reads will be ignored, to include them add -is flag.  
-**NOTE:** Currently, NanoMethPhase requires a single sample vcf file in which phase information of SNVs in 10th column indicated by "|" (e.g. 0|1 or 1|0). For more information about the input vcf file please read issue [#1](https://github.com/vahidAK/NanoMethPhase/issues/1).  
-  
 You can select 3 output options:
 
 ***bam***: output phased bam files
 
 ***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:
 
-| **Shorten**   | **Description** |
-| ------------: | ----------------------------------------------------------------- |
-| chromosome    | Chromosome name.                                                  |
-| start         | Zero-Based start position of CpG.                                 |
-| end           | Zero-Based end position of CpG.                                   |
-| strand        | Strand.                                                           |
-| read_name     | Read ID.                                                          |
-| log_lik_ratio | llr from nanopolish given to each CpG as being methylated or not. |
+| **Shorten**      | **Description** |
+| --------------:  | ----------------------------------------------------------------------------------|
+| chromosome       | Chromosome name.                                                                  |
+| start            | Start position of CpG.                                                            |
+| end              | End position of CpG.                                                              |
+| strand           | Strand.                                                                           |
+| read_name        | Read ID.                                                                          |
+| llr_Or_DeltaProb | llr for CpG from nanopolosh (Or delta prob in case of megalodon and deepsignal).  |  
+
+CpG coordinates are zero-based here.
 
 The headers for methylation frequency files are as follow:
 
 | **Shorten**   | **Description** |
 | ------------: | ---------------------------------------------------- |
 | chromosome    | Chromosome name.                                     |
-| start         | Zero-Based start position of CpG.                    |
-| end           | Zero-Based end position of CpG.                      |
+| start         | Start position of CpG.                               |
+| end           | End position of CpG.                                 |
 | strand        | Strand.                                              |
 | NumOfAllCalls | Number of all called CpGs.                           |
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
-| MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |
+| MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |  
+
+CpG coordinates are zero-based here.
 
 **NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site. For example, following command aggregates data from both strands and calculates new methylation frequency for each CpG (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
 
@@ -592,22 +520,23 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 
 ***bam2bis***: output mock whole-genome bisulfite converted bam files which can be visualized in IGV. Note that the reads in the output bams are not exactly the same as the reads in the input bam. In the output bams the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
 
-**NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the folllowing information:  
+**NOTE:** NanoMethPhase will also output a ***PerReadInfo.tsv*** file. This file includes the following information:  
   
-| **Shorten**             | **Description** |
-| ----------------------: | ----------------------------------------------------------------------------------------------------------------------- |
-| chromosome              | Chromosome that read mapped to.                                                                                         |
-| ReadRefStart            | Zero-Based start position where the read mapped.                                                                        |
-| ReadRefEnd              | Zero-Based end position where the read mapped.                                                                          |
-| ReadID                  | Read ID.                                                                                                                |
-| strand                  | Strand.                                                                                                                 |
-| ReadFlag                | Bitwise flag of the read.                                                                                               |
-| ReadLength              | The length of mapped read.                                                                                              |
-| Haplotype               | Haplotype status of SNVs mapped to the read (for each read SNVs from each haplotype will be written in separate lines). |
-| NumOfPhasedSNV          | Number of all SNVs (regardless of base quality filter) from the haplotype mapped to the read.                           |
-| Position:BaseQuality    | Genomic position:Base quality of the SNVs.                                                                              |
+| **Shorten**                       | **Description** |
+| --------------------------------: | ----------------------------------------------------------------------------------------------------------------------- |
+| chromosome                        | Chromosome that read mapped to.                                                                                         |
+| ReadRefStart                      | Start position where the read mapped.                                                                                   |
+| ReadRefEnd                        | End position where the read mapped.                                                                                     |
+| ReadID                            | Read ID.                                                                                                                |
+| strand                            | Strand.                                                                                                                 |
+| ReadFlag:Is_Supplementary         | Bitwise flag of the read:If read is supplementary or not.                                                               |
+| ReadLength:MappingQuality         | The length of mapped read:Mapping quality of the read.                                                                  |
+| Position:BaseQuality:HP1_Variants | Position and Phred quality of bases from read at haplotype 1.                                                           |
+| Position:BaseQuality:HP2_Variants | Position and Phred quality of bases from read at haplotype 2.                                                           |  
+
+Coordinates are zero-based in per-read info file.
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for next runs if you wish to try different thresholds  of options. **However**, running with different mapping quality or include/exclude supplementary reads in your next runs is **NOT supported** using per-read file and you need to start again with vcf file.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for the next runs if you wish to try different thresholds of options (-mq, -mbq, -mv, -hr, -abq, -ind, -is). Note that per-read file from previous version **cannot** be used to run with different mapping quality or include/exclude supplementary reads.  
   
 ### 4-3 Differential Methylation Analysis:
 
@@ -615,10 +544,11 @@ Having this file allow you to use it instead of the vcf file which improves the 
 nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -o <output directory> -op <output Prefix>
 ```
 
-We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes.
-callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page.  
-Note: During DMA, for inputs with methylation from both strands like HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
+We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes. -dm, -ml, -mcg, -sms, -smf, -ed, -pvc, -dc and -pct options and their help are from DSS R package and you can read DSS documentation for more information.
+callDMR.txt is the main output you need that stores differentially methylated regions (You can also refine your DMR list afterwars based on "diff.methy" column, which is the difference of average methylations from both comparisons, and/or areaStat), callDML.txt is the output that stores differentialy methylated loci (you can also use "diff" column that is difference of average methylations from both comparisons to further refine your DML list) and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page. Note that During DMA, for inputs with methylation from both strands like HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
+Note: When dis_merge (dis.merge) is greater than minlen, current versions of DSS package just consider dis.merge equal to minlen. Therefore, the maximum dis.merge is minlen even if you selected a dis.merge greater than minlen (You can read issue #31 [here](https://github.com/haowulab/DSS/issues) for more info.).  
 
 # Example:
 We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.  
 If you want to try workflow from basecalling to methylation phasing we have included a subset of [NA12878 data](https://github.com/nanopore-wgs-consortium/NA12878/blob/master/Genome.md) (chr11:2600000-2800000) at [this link](https://www.bcgsc.ca/downloads/NanoMethPhase/test_data.tar.gz) which you can download and try.
+
