@@ -1673,17 +1673,17 @@ def phase_parser(subparsers):
                           type=str,
                           required=True,
                           help="The path to the cordinate sorted bam file.")
+    sp_input.add_argument("--vcf", "-v",
+                          action="store",
+                          type=str,
+                          required=True,
+                          help="The path to the phased vcf file.")
     sp_input.add_argument("--output", "-o",
                           action="store",
                           type=str,
                           required=True,
                           help=("The path to directory and prefix to save "
                                 "files. e.g path/to/directory/prefix"))
-    sp_input.add_argument("--vcf", "-v",
-                          action="store",
-                          type=str,
-                          required=True,
-                          help="The path to the phased vcf file.")
     sp_input = sub_phase.add_argument_group("conditional required arguments based"
                                             " on selected output format(s)")
     sp_input.add_argument("--reference", "-r",
@@ -1700,22 +1700,11 @@ def phase_parser(subparsers):
                           type=str,
                           required=False,
                           default=None,
-                          help=("If you want to phase methyl call file "
-                                "(methycall output format) to also calculate "
-                                "methylation frequency for each haplotype "
-                                "give the path to the bgziped methylation "
+                          help=("If you have selected methylcall or bam2bis "
+                                "output format to phase methylation or make mock bisulfite bams, "
+                                "give the path to the bgziped and indexed methylation "
                                 "call file from methyl_call_processor Module."))
-    sp_input = sub_phase.add_argument_group("optional arguments")
-    sp_input.add_argument("--per_read", "-pr",
-                          action="store",
-                          type=str,
-                          required=False,
-                          default=None,
-                          help="If it is your second try and you have per read info"
-                               " file from the first try you can specify the per-read"
-                               " file to make the process faster. This also enables you "
-                               "to try different threshols of options (-mv, -mbq, mq, -hr, -abq),"
-                               " include exclude indels, include/exclude supp reads.")
+    sp_input = sub_phase.add_argument_group("General optional arguments")
     sp_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
@@ -1734,47 +1723,55 @@ def phase_parser(subparsers):
                                 "methylcall: outputs phased methylcall and "
                                 "methylation frequency files for seperate "
                                 "haplotypes. You can select any format and "
-                                "multiple or all of them seperated by comma."
-                                "NOTE: if you select bam2bis and/or "
-                                "methylcall, you must provide input "
-                                "methylcall.bed.gz file from "
-                                "methyl_call_processor module."))
-    sp_input.add_argument("--window", "-w",
+                                "multiple or all of them seperated by comma."))
+    sp_input.add_argument("--per_read", "-pr",
                           action="store",
                           type=str,
                           required=False,
-                          help=("if you want to only phase read for a region "
-                                "or chromosome. You must insert region like "
-                                "this chr1 or chr1:1000-100000."))
-    sp_input.add_argument("--motif", "-mt",
+                          default=None,
+                          help="If it is your second try and you have per read info"
+                               " file from the first try you can specify the per-read"
+                               " file to make the process faster. This also enables you "
+                               "to try different threshols of options (-mv, -mbq, mq, -hr, -abq),"
+                               " include/exclude indels, include/exclude supp reads.")
+    sp_input.add_argument("--min_variant", "-mv",
                           action="store",
-                          type=str,
+                          type=int,
                           required=False,
-                          default="cpg",
-                          help=("The motif you called methylation for (cpg), "
-                                "Currently just cpg."))
+                          default=1,
+                          help=("minimum number of phased variants must a read "
+                                "have to be phased. Default is 1"))
     sp_input.add_argument("--hapratio", "-hr",
                           action="store",
                           type=float,
                           required=False,
                           default=0.75,
-                          help=("0-1 .The threshold ratio (# of SNVs from one over the other)"
-                                " between haplotype to tag as H1 or H2 (H2/H1 when #SNVs at H1 > H2"
-                                " and H1/H2 when #SNVs at H2 > H1). Default is <= 0.75"))
+                          help=("0-1 .The maximum ratio (# of SNVs from one halotype over the other)"
+                                " between haplotypes to tag as H1 or H2 (H2/H1 when #SNVs at H1 > H2"
+                                " and H1/H2 when #SNVs at H2 > H1). Default is 0.75"))
+    sp_input.add_argument("--mapping_quality", "-mq",
+                          action="store",
+                          type=int,
+                          required=False,
+                          default=20,
+                          help=("An integer value to specify minimum"
+                                " read mapping quality. "
+                                "Default is 20"))
     sp_input.add_argument("--min_base_quality", "-mbq",
                           action="store",
                           type=int,
                           required=False,
                           default=7,
-                          help=("Only include bases with phred score higher or"
-                                " equal than this option. Default is >=7."))
+                          help=("Only include bases with this minimum base quality"
+                                ". Default is 7."))
     sp_input.add_argument("--average_base_quality", "-abq",
                           action="store",
                           type=int,
                           required=False,
                           default=20,
-                          help=("Base quality that variants tagged to a haplotype "
-                                "should have compare to the other haplotype. "
+                          help=("Minimum quality that variants tagged to a haplotype "
+                                "should have compare to the other haplotype when average "
+                                "of qualities is not informative. "
                                 "This will be used "
                                 "when the average base quality of variants mapped"
                                 " to two haplotypes for one read is not informative and"
@@ -1786,22 +1783,29 @@ def phase_parser(subparsers):
                                 "the tool will count number of variants in both haplotypes "
                                 " that meet the given average_base_quality and uses"
                                 " the counts to make decision."
-                                " Default is >=20."))
-    sp_input.add_argument("--mapping_quality", "-mq",
-                          action="store",
-                          type=int,
+                                " Default is 20."))
+    sp_input.add_argument("--include_indels", "-ind",
+                          action="store_true",
                           required=False,
-                          default=20,
-                          help=("An integer value to specify thereshold for "
-                                "filtering reads based om mapping quality. "
-                                "Default is >=20"))
-    sp_input.add_argument("--min_variant", "-mv",
-                          action="store",
-                          type=int,
+                          help="Also include indels for read phasing to haplotypes.")
+    sp_input.add_argument("--include_supplementary", "-is",
+                          action="store_true",
                           required=False,
-                          default=1,
-                          help=("minimum number of phased variants must a read "
-                                "have to be phased. Default is 1"))
+                          help="Also include supplementary reads")
+    sp_input.add_argument("--motif", "-mt",
+                          action="store",
+                          type=str,
+                          required=False,
+                          default="cpg",
+                          help=("The motif you called methylation for (cpg), "
+                                "Currently just cpg."))
+    sp_input.add_argument("--window", "-w",
+                          action="store",
+                          type=str,
+                          required=False,
+                          help=("if you want to only phase read for a region "
+                                "or chromosome. You must insert region like "
+                                "this chr1 or chr1:1000-100000."))
     sp_input.add_argument("--threads", "-t",
                           action="store",
                           type=int,
@@ -1815,14 +1819,6 @@ def phase_parser(subparsers):
                           default=100,
                           help=("Number of reads send to each proccessor. "
                                 "Default is 100"))
-    sp_input.add_argument("--include_indels", "-ind",
-                          action="store_true",
-                          required=False,
-                          help="Also include indels for read phasing to haplotypes.")
-    sp_input.add_argument("--include_supplementary", "-is",
-                          action="store_true",
-                          required=False,
-                          help="Also include supplementary reads")
     sp_input.add_argument("--overwrite", "-ow",
                           action="store_true",
                           required=False,
@@ -1944,13 +1940,14 @@ def bam2bis_parser(subparsers):
     sbb_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
-    sbb_input.add_argument("--window", "-w",
+    sbb_input.add_argument("--mapping_quality", "-mq",
                           action="store",
-                          type=str,
+                          type=int,
                           required=False,
-                          help=("if you want to only convert reads for a "
-                                "region or chromosome. You must insert region "
-                                "like this chr1 or chr1:1000-100000."))
+                          default=20,
+                          help=("An integer value to specify minimum"
+                                " mapping quality of the read. "
+                                "Default is 20"))
     sbb_input.add_argument("--motif", "-mt",
                           action="store",
                           type=str,
@@ -1958,19 +1955,22 @@ def bam2bis_parser(subparsers):
                           default="cpg",
                           help=("The motif you called methylation for (cpg), "
                                 "Currently just cpg."))
-    sbb_input.add_argument("--mapping_quality", "-mq",
-                          action="store",
-                          type=int,
-                          required=False,
-                          default=20,
-                          help=("An integer value to specify thereshold for "
-                                "filtering reads based om mapping quality. "
-                                "Default is >=20"))
     sbb_input.add_argument("--methylation", "-met",
                           action="store_true",
                           required=False,
                           help="Output methylation call and frequency for "
                           "converted reads.")
+    sbb_input.add_argument("--include_supplementary", "-is",
+                          action="store_true",
+                          required=False,
+                          help="Also include supplementary reads")
+    sbb_input.add_argument("--window", "-w",
+                          action="store",
+                          type=str,
+                          required=False,
+                          help=("if you want to only convert reads for a "
+                                "region or chromosome. You must insert region "
+                                "like this chr1 or chr1:1000-100000."))
     sbb_input.add_argument("--threads", "-t",
                           action="store",
                           type=int,
@@ -1984,10 +1984,6 @@ def bam2bis_parser(subparsers):
                           default=100,
                           help=("Number of reads send to each proccessor. "
                                 "Default is 100"))
-    sbb_input.add_argument("--include_supplementary", "-is",
-                          action="store_true",
-                          required=False,
-                          help="Also include supplementary reads")
     sbb_input.add_argument("--overwrite", "-ow",
                           action="store_true",
                           required=False,
@@ -2037,7 +2033,7 @@ def dma_parser(subparsers):
                             type=str,
                             required=True,
                             help="The prefix for the output files")
-    sdma_input = sub_dma.add_argument_group("optional arguments")
+    sdma_input = sub_dma.add_argument_group("General optional arguments.")
     sdma_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
@@ -2061,13 +2057,22 @@ def dma_parser(subparsers):
                                   "If you giving as input NanoMethPhase "
                                   "frequency files select this:"
                                   "--columns 1,2,4,5,7\n"))
+    sdma_input.add_argument("--coverage", "-cov",
+                            action="store",
+                            type=int,
+                            default=1,
+                            required=False,
+                            help=("Minimum coverage cutoff. Default is 1. It is "
+                                  "recommended that do not filter for "
+                                  "coverage as DSS R package will take care "
+                                  "of it."))
     sdma_input.add_argument("--Rscript", "-rs",
                             action="store",
                             type=str,
                             required=False,
                             default="Rscript",
                             help="The path to a particular instance of "
-                                 "Rscript to use")
+                                 "Rscript to use.")
     sdma_input.add_argument("--script_file", "-sf",
                             action="store",
                             type=str,
@@ -2076,51 +2081,22 @@ def dma_parser(subparsers):
                                                     os.path.realpath(__file__)
                                                         ),
                                                  "DSS_DMA.R"),
-                            help="The path to the DSS_DMA.R script file")
-    sdma_input.add_argument("--coverage", "-cov",
-                            action="store",
-                            type=int,
-                            default=1,
+                            help="The path to the DSS_DMA.R script file."
+                            " By default the script that was shipped during nanomethphase"
+                            "installation will be used.")
+    sdma_input.add_argument("--overwrite", "-ow",
+                            action="store_true",
                             required=False,
-                            help=("Coverage cutoff. Default is >=1. It is "
-                                  "recommended that do not filter for "
-                                  "coverage as DSS R package will take care "
-                                  "of it."))
-    sdma_input.add_argument("--dis_merge", "-dm",
-                            action="store",
-                            type=int,
-                            default=100,
-                            required=False,
-                            help=("When two DMRs are very close to each other "
-                                  "and the distance (in bps) is less than "
-                                  "this number, they will be merged into one. "
-                                  "Default is 100 bps."
-                                  " It is used in DSS callDMR function."
-                                  " See dma section notes for more details."))
-    sdma_input.add_argument("--minlen", "-ml",
-                            action="store",
-                            type=int,
-                            default=100,
-                            required=False,
-                            help=("Minimum length (in basepairs) required for "
-                                  "DMR. Default is 100 bps."
-                                  " It is used in DSS callDMR function."))
-    sdma_input.add_argument("--minCG", "-mcg",
-                            action="store",
-                            type=int,
-                            default=15,
-                            required=False,
-                            help=("Minimum number of CpG sites required for "
-                                  "DMR. Default is 15. "
-                                  "It is used in DSS callDMR function."))
+                            help="If output files exist overwrite them.")
+    sdma_input = sub_dma.add_argument_group("optional arguments that will be used in "
+                                            "DSS DMLtest function.")
     sdma_input.add_argument("--smoothing_span", "-sms",
                             action="store",
                             type=int,
                             default=500,
                             required=False,
                             help=("The size of smoothing window, in "
-                                  "basepairs. Default is 500."
-                                  " It is used in DSS DMLtest function."))
+                                  "basepairs. Default is 500."))
     sdma_input.add_argument("--smoothing_flag", "-smf",
                             action="store",
                             type=str,
@@ -2128,13 +2104,12 @@ def dma_parser(subparsers):
                             required=False,
                             help=("TRUE/FALSE. A flag to indicate whether to apply smoothing"
                                   " in estimating mean methylation levels. It is "
-                                  "recommended to use smoothing=TRUE for "
+                                  "recommended to use smoothing TRUE for "
                                   "whole-genome BS-seq data, and "
-                                  "smoothing=FALSE for sparser data such "
+                                  "smoothing FALSE for sparser data such "
                                   "like from RRBS or hydroxyl-methylation "
                                   "data (TAB-seq). see -ed option and DSS R package details "
-                                  " for more information. Default is TRUE."
-                                  " It is used in DSS DMLtest function."))
+                                  " for more information. Default is TRUE."))
     sdma_input.add_argument("--equal_disp", "-ed",
                             action="store",
                             type=str,
@@ -2148,18 +2123,19 @@ def dma_parser(subparsers):
                                   "More info on -ed and -smf: When there is no biological "
                                   "replicate in one or both treatment groups, "
                                   "users can either (1) specify "
-                                  "equal.disp=TRUE, which assumes both groups "
+                                  "equal.disp TRUE, which assumes both groups "
                                   "have the same dispersion, then the data "
                                   "from two groups are combined and used as "
                                   "replicates to estimate dispersion; or (2) "
-                                  "specify smoothing=TRUE, which uses the "
+                                  "specify smoothing TRUE, which uses the "
                                   "smoothed means (methylation levels) to "
                                   "estimate dispersions via a shrinkage "
                                   "estimator. This smoothing procedure uses "
                                   "data from neighboring CpG sites as "
                                   "\"pseudo-replicate\" for estimating "
-                                  "biological variance."
-                                  " It is used in DSS DMLtest function."))
+                                  "biological variance."))
+    sdma_input = sub_dma.add_argument_group("optional arguments that will be used in "
+                                            "DSS callDML and callDMR functions.")
     sdma_input.add_argument("--pval_cutoff", "-pvc",
                             action="store",
                             type=float,
@@ -2170,8 +2146,7 @@ def dma_parser(subparsers):
                                   "threshold will be picked as DML and also joint to form "
                                   "the DMRs. See DSS R package 'details' for more "
                                   "information for this regarding DMLs and DMRs. "
-                                  "Default is 0.001."
-                                  " It is used in DSS callDML and callDMR functions."))
+                                  "Default is 0.001."))
     sdma_input.add_argument("--delta_cutoff", "-dc",
                             action="store",
                             type=float,
@@ -2188,8 +2163,24 @@ def dma_parser(subparsers):
                                   "that. This only works when the test "
                                   "results are from 'DMLtest', which is for "
                                   "two-group comparison. See DSS R package for "
-                                  "more information. Default is 0."
-                                  " It is used in DSS callDML and callDMR functions."))
+                                  "more information. Default is 0."))
+    sdma_input = sub_dma.add_argument_group("optional arguments that will be used in "
+                                            "DSS callDMR function.")
+    sdma_input.add_argument("--minlen", "-ml",
+                            action="store",
+                            type=int,
+                            default=100,
+                            required=False,
+                            help=("Minimum length (in basepairs) required for "
+                                  "DMR. Default is 100 bps."))
+    sdma_input.add_argument("--minCG", "-mcg",
+                            action="store",
+                            type=int,
+                            default=15,
+                            required=False,
+                            help=("Minimum number of CpG sites required for "
+                                  "DMR. Default is 15."))
+    
     sdma_input.add_argument("--pct_sig", "-pct",
                             action="store",
                             type=float,
@@ -2200,12 +2191,17 @@ def dma_parser(subparsers):
                                   "p.threshold) must be greater than this "
                                   "threshold. Default is 0.5. This is mainly "
                                   "used for correcting the effects of merging "
-                                  "of nearby DMRs."
-                                  " It is used in DSS callDMR function."))
-    sdma_input.add_argument("--overwrite", "-ow",
-                            action="store_true",
+                                  "of nearby DMRs."))
+    sdma_input.add_argument("--dis_merge", "-dm",
+                            action="store",
+                            type=int,
+                            default=100,
                             required=False,
-                            help="If output files exist overwrite them")
+                            help=("When two DMRs are very close to each other "
+                                  "and the distance (in bps) is less than "
+                                  "this number, they will be merged into one. "
+                                  "Default is 100 bps."
+                                  " See dma section notes for more details."))
     sub_dma.set_defaults(func=main_dma)
 
 
