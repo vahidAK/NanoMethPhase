@@ -428,7 +428,7 @@ def openfile(file):
 def FrequencyCalculator(file_path):
     """
     Calculating methylation frequency for each phased methylation call
-    file.  The output methylation frequency file include fractional
+    file. The output methylation frequency file include fractional
     methylation which can be used for differential methylation analysis
     and detection of differentially methylated regions (DMR)
     """
@@ -456,8 +456,8 @@ def methcall2bed(readlist,
                  callthresh,
                  tool):
     """
-    This function converts nanopolish methylation call file to a bed
-    format and also splits multi-group CpG sites to single group.
+    This function converts methylation call file to a bed
+    format and also splits multi-group CpG sites, in case of nanopolish, to single group.
     """
     read_list= list()
     if tool == "nanopolish":
@@ -779,8 +779,8 @@ def per_read_variant(vcf_dict,
 def main_methyl_call_processor(args):
     """
     This is the methyl_call_processor module which converts input
-    methylation call from nanopolish to a single-group CpG bed format
-    file for downstream step during Phasing.
+    methylation call to a bed format
+    file for downstream steps.
     """
     MethylCallfile = os.path.abspath(args.MethylCallfile)
     tool,callthresh= args.tool_and_callthresh.split(":")
