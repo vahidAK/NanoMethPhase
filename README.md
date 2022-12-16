@@ -99,27 +99,27 @@ optional arguments:
 ## phase:  
 Phasing reads and CpG Methylation data to the coresponding haplotypes.  
 ```
-usage: nanomethphase phase --bam BAM --output OUTPUT --vcf VCF
+usage: nanomethphase phase --bam BAM --vcf VCF --output OUTPUT
                            [--reference REFERENCE]
-                           [--methylcallfile METHYLCALLFILE]
-                           [--per_read PER_READ] [-h] [--outformat OUTFORMAT]
-                           [--window WINDOW] [--motif MOTIF]
-                           [--hapratio HAPRATIO]
+                           [--methylcallfile METHYLCALLFILE] [-h]
+                           [--outformat OUTFORMAT] [--per_read PER_READ]
+                           [--min_variant MIN_VARIANT] [--hapratio HAPRATIO]
+                           [--mapping_quality MAPPING_QUALITY]
                            [--min_base_quality MIN_BASE_QUALITY]
                            [--average_base_quality AVERAGE_BASE_QUALITY]
-                           [--mapping_quality MAPPING_QUALITY]
-                           [--min_variant MIN_VARIANT] [--threads THREADS]
-                           [--chunk_size CHUNK_SIZE] [--include_indels]
-                           [--include_supplementary] [--overwrite]
+                           [--include_indels] [--include_supplementary]
+                           [--motif MOTIF] [--window WINDOW]
+                           [--threads THREADS] [--chunk_size CHUNK_SIZE]
+                           [--overwrite]
 
 Phasing reads and Methylation
 
 required arguments:
   --bam BAM, -b BAM     The path to the cordinate sorted bam file.
+  --vcf VCF, -v VCF     The path to the phased vcf file.
   --output OUTPUT, -o OUTPUT
                         The path to directory and prefix to save files. e.g
                         path/to/directory/prefix
-  --vcf VCF, -v VCF     The path to the phased vcf file.
 
 conditional required arguments based on selected output format(s):
   --reference REFERENCE, -r REFERENCE
@@ -127,20 +127,13 @@ conditional required arguments based on selected output format(s):
                         bam2bis output format. Fasta file must be already
                         indexed using samtools faidx.
   --methylcallfile METHYLCALLFILE, -mc METHYLCALLFILE
-                        If you want to phase methyl call file (methycall
-                        output format) to also calculate methylation frequency
-                        for each haplotype give the path to the bgziped
+                        If you have selected methylcall or bam2bis output
+                        format to phase methylation or make mock bisulfite
+                        bams, give the path to the bgziped and indexed
                         methylation call file from methyl_call_processor
                         Module.
 
-optional arguments:
-  --per_read PER_READ, -pr PER_READ
-                        If it is your second try and you have per read info
-                        file from the first try you can specify the per-read
-                        file to make the process faster. This also enables you
-                        to try different threshols of options (-mv, -mbq, mq,
-                        -hr, -abq), include exclude indels, include/exclude
-                        supp reads.
+General optional arguments:
   -h, --help            show this help message and exit
   --outformat OUTFORMAT, -of OUTFORMAT
                         What type of output you want (bam,bam2bis,methylcall).
@@ -150,53 +143,58 @@ optional arguments:
                         format for visualisation in IGV.methylcall: outputs
                         phased methylcall and methylation frequency files for
                         seperate haplotypes. You can select any format and
-                        multiple or all of them seperated by comma.NOTE: if
-                        you select bam2bis and/or methylcall, you must provide
-                        input methylcall.bed.gz file from
-                        methyl_call_processor module.
+                        multiple or all of them seperated by comma.
+  --per_read PER_READ, -pr PER_READ
+                        If it is your second try and you have per read info
+                        file from the first try you can specify the per-read
+                        file to make the process faster. This also enables you
+                        to try different threshols of options (-mv, -mbq, mq,
+                        -hr, -abq), include/exclude indels, include/exclude
+                        supp reads.
+  --min_variant MIN_VARIANT, -mv MIN_VARIANT
+                        minimum number of phased variants must a read have to
+                        be phased. Default is 1
+  --hapratio HAPRATIO, -hr HAPRATIO
+                        0-1 .The maximum ratio (# of SNVs from one halotype
+                        over the other) between haplotypes to tag as H1 or H2
+                        (H2/H1 when #SNVs at H1 > H2 and H1/H2 when #SNVs at
+                        H2 > H1). Default is 0.75
+  --mapping_quality MAPPING_QUALITY, -mq MAPPING_QUALITY
+                        An integer value to specify minimum read mapping
+                        quality. Default is 20
+  --min_base_quality MIN_BASE_QUALITY, -mbq MIN_BASE_QUALITY
+                        Only include bases with this minimum base quality.
+                        Default is 7.
+  --average_base_quality AVERAGE_BASE_QUALITY, -abq AVERAGE_BASE_QUALITY
+                        Minimum quality that variants tagged to a haplotype
+                        should have compare to the other haplotype when
+                        average of qualities is not informative. This will be
+                        used when the average base quality of variants mapped
+                        to two haplotypes for one read is not informative and
+                        decision cannot be made (e.g. when 10 variants of HP1
+                        mapped to a read with average quality of 30, but only
+                        one variant from HP2 mapped to the same read with
+                        bq=35). Then, instead of considering average of
+                        qualities, the tool will count number of variants in
+                        both haplotypes that meet the given
+                        average_base_quality and uses the counts to make
+                        decision. Default is 20.
+  --include_indels, -ind
+                        Also include indels for read phasing to haplotypes.
+  --include_supplementary, -is
+                        Also include supplementary reads
+  --motif MOTIF, -mt MOTIF
+                        The motif you called methylation for (cpg), Currently
+                        just cpg.
   --window WINDOW, -w WINDOW
                         if you want to only phase read for a region or
                         chromosome. You must insert region like this chr1 or
                         chr1:1000-100000.
-  --motif MOTIF, -mt MOTIF
-                        The motif you called methylation for (cpg), Currently
-                        just cpg.
-  --hapratio HAPRATIO, -hr HAPRATIO
-                        0-1 .The threshold ratio (# of SNVs from one over the
-                        other) between haplotype to tag as H1 or H2 (H2/H1
-                        when #SNVs at H1 > H2 and H1/H2 when #SNVs at H2 >
-                        H1). Default is <= 0.75
-  --min_base_quality MIN_BASE_QUALITY, -mbq MIN_BASE_QUALITY
-                        Only include bases with phred score higher or equal
-                        than this option. Default is >=7.
-  --average_base_quality AVERAGE_BASE_QUALITY, -abq AVERAGE_BASE_QUALITY
-                        Base quality that variants tagged to a haplotype
-                        should have compare to the other haplotype. This will
-                        be used when the average base quality of variants
-                        mapped to two haplotypes for one read is not
-                        informative and decision cannot be made (e.g. when 10
-                        variants of HP1 mapped to a read with average quality
-                        of 30, but only one variant from HP2 mapped to the
-                        same read with bq=35). Then, instead of considering
-                        average of qualities, the tool will count number of
-                        variants in both haplotypes that meet the given
-                        average_base_quality and uses the counts to make
-                        decision. Default is >=20.
-  --mapping_quality MAPPING_QUALITY, -mq MAPPING_QUALITY
-                        An integer value to specify thereshold for filtering
-                        reads based om mapping quality. Default is >=20
-  --min_variant MIN_VARIANT, -mv MIN_VARIANT
-                        minimum number of phased variants must a read have to
-                        be phased. Default is 1
   --threads THREADS, -t THREADS
                         Number of parallel processes. Default is 4
   --chunk_size CHUNK_SIZE, -cs CHUNK_SIZE
                         Number of reads send to each proccessor. Default is
                         100
-  --include_indels, -ind
-                        Also include indels for read phasing to haplotypes.
-  --include_supplementary, -is
-                        Also include supplementary reads
   --overwrite, -ow      If output files exist overwrite them
 ```  
 ## dma:
@@ -204,14 +202,14 @@ To perform differential Methylation analysis for two group comparison. It is a w
 ```
 usage: nanomethphase dma --case CASE --control CONTROL --out_dir OUT_DIR
                          --out_prefix OUT_PREFIX [-h] [--columns COLUMNS]
-                         [--Rscript RSCRIPT] [--script_file SCRIPT_FILE]
-                         [--coverage COVERAGE] [--dis_merge DIS_MERGE]
-                         [--minlen MINLEN] [--minCG MINCG]
+                         [--coverage COVERAGE] [--Rscript RSCRIPT]
+                         [--script_file SCRIPT_FILE] [--overwrite]
                          [--smoothing_span SMOOTHING_SPAN]
                          [--smoothing_flag SMOOTHING_FLAG]
                          [--equal_disp EQUAL_DISP] [--pval_cutoff PVAL_CUTOFF]
-                         [--delta_cutoff DELTA_CUTOFF] [--pct_sig PCT_SIG]
-                         [--overwrite]
+                         [--delta_cutoff DELTA_CUTOFF] [--minlen MINLEN]
+                         [--minCG MINCG] [--pct_sig PCT_SIG]
+                         [--dis_merge DIS_MERGE]
 
 Differential Methylation analysis for two group only (to find DMRs using
 phased frequency results) using DSS R package.
@@ -234,7 +232,7 @@ required arguments:
   --out_prefix OUT_PREFIX, -op OUT_PREFIX
                         The prefix for the output files
 
-optional arguments:
+General optional arguments.:
   -h, --help            show this help message and exit
   --columns COLUMNS, -c COLUMNS
                         Comma seperated Columns in the methylation frequency
@@ -248,39 +246,30 @@ optional arguments:
                         do not need to select any column. If you giving as
                         input NanoMethPhase frequency files select
                         this:--columns 1,2,4,5,7
-  --Rscript RSCRIPT, -rs RSCRIPT
-                        The path to a particular instance of Rscript to use
-  --script_file SCRIPT_FILE, -sf SCRIPT_FILE
-                        The path to the DSS_DMA.R script file
   --coverage COVERAGE, -cov COVERAGE
-                        Coverage cutoff. Default is >=1. It is recommended
-                        that do not filter for coverage as DSS R package will
-                        take care of it.
-  --dis_merge DIS_MERGE, -dm DIS_MERGE
-                        When two DMRs are very close to each other and the
-                        distance (in bps) is less than this number, they will
-                        be merged into one. Default is 100 bps. It is used in
-                        DSS callDMR function. See dma section notes for more
-                        details.
-  --minlen MINLEN, -ml MINLEN
-                        Minimum length (in basepairs) required for DMR.
-                        Default is 100 bps. It is used in DSS callDMR
-                        function.
-  --minCG MINCG, -mcg MINCG
-                        Minimum number of CpG sites required for DMR. Default
-                        is 15. It is used in DSS callDMR function.
+                        Minimum coverage cutoff. Default is 1. It is
+                        recommended that do not filter for coverage as DSS R
+                        package will take care of it.
+  --Rscript RSCRIPT, -rs RSCRIPT
+                        The path to a particular instance of Rscript to use.
+  --script_file SCRIPT_FILE, -sf SCRIPT_FILE
+                        The path to the DSS_DMA.R script file. By default the
+                        script that was shipped during
+                        nanomethphaseinstallation will be used.
+  --overwrite, -ow      If output files exist overwrite them.
+
+optional arguments that will be used in DSS DMLtest function.:
   --smoothing_span SMOOTHING_SPAN, -sms SMOOTHING_SPAN
                         The size of smoothing window, in basepairs. Default is
-                        500. It is used in DSS DMLtest function.
+                        500.
   --smoothing_flag SMOOTHING_FLAG, -smf SMOOTHING_FLAG
                         TRUE/FALSE. A flag to indicate whether to apply
                         smoothing in estimating mean methylation levels. It is
-                        recommended to use smoothing=TRUE for whole-genome BS-
-                        seq data, and smoothing=FALSE for sparser data such
+                        recommended to use smoothing TRUE for whole-genome BS-
+                        seq data, and smoothing FALSE for sparser data such
                         like from RRBS or hydroxyl-methylation data (TAB-seq).
                         see -ed option and DSS R package details for more
-                        information. Default is TRUE. It is used in DSS
-                        DMLtest function.
+                        information. Default is TRUE.
   --equal_disp EQUAL_DISP, -ed EQUAL_DISP
                         TRUE/FALSE. A flag to indicate whether the dispersion
                         in two groups are deemed equal or not. Default is
@@ -288,23 +277,23 @@ optional arguments:
                         two conditions independently. More info on -ed and
                         -smf: When there is no biological replicate in one or
                         both treatment groups, users can either (1) specify
-                        equal.disp=TRUE, which assumes both groups have the
+                        equal.disp TRUE, which assumes both groups have the
                         same dispersion, then the data from two groups are
                         combined and used as replicates to estimate
-                        dispersion; or (2) specify smoothing=TRUE, which uses
+                        dispersion; or (2) specify smoothing TRUE, which uses
                         the smoothed means (methylation levels) to estimate
                         dispersions via a shrinkage estimator. This smoothing
                         procedure uses data from neighboring CpG sites as
                         "pseudo-replicate" for estimating biological variance.
-                        It is used in DSS DMLtest function.
+
+optional arguments that will be used in DSS callDML and callDMR functions.:
   --pval_cutoff PVAL_CUTOFF, -pvc PVAL_CUTOFF
                         A threshold of p-values for calling DMLs and DMRs.
                         When delta is not specified, Loci with p-values less
                         than this threshold will be picked as DML and also
                         joint to form the DMRs. See DSS R package 'details'
                         for more information for this regarding DMLs and DMRs.
-                        Default is 0.001. It is used in DSS callDML and
-                        callDMR functions.
+                        Default is 0.001.
   --delta_cutoff DELTA_CUTOFF, -dc DELTA_CUTOFF
                         A threshold for defining DMLs and DMRs. In DML
                         detection procedure, a hypothesis test that the two
@@ -315,26 +304,37 @@ optional arguments:
                         and construct DMR based on that. This only works when
                         the test results are from 'DMLtest', which is for two-
                         group comparison. See DSS R package for more
-                        information. Default is 0. It is used in DSS callDML
-                        and callDMR functions.
+                        information. Default is 0.
+
+optional arguments that will be used in DSS callDMR function.:
+  --minlen MINLEN, -ml MINLEN
+                        Minimum length (in basepairs) required for DMR.
+                        Default is 100 bps.
+  --minCG MINCG, -mcg MINCG
+                        Minimum number of CpG sites required for DMR. Default
+                        is 15.
   --pct_sig PCT_SIG, -pct PCT_SIG
                         In all DMRs, the percentage of CG sites with
                         significant p-values (less than p.threshold) must be
                         greater than this threshold. Default is 0.5. This is
                         mainly used for correcting the effects of merging of
-                        nearby DMRs. It is used in DSS callDMR function.
-  --overwrite, -ow      If output files exist overwrite them
+                        nearby DMRs.
+  --dis_merge DIS_MERGE, -dm DIS_MERGE
+                        When two DMRs are very close to each other and the
+                        distance (in bps) is less than this number, they will
+                        be merged into one. Default is 100 bps. See dma
+                        section notes for more details.
 ```  
 ## bam2bis:
 Convert a bam file to a mock whole-genome bisulfite sequencing format for visualization in IGV. Note that the reads in the output bam from this module are not exactly the same as the reads in the input bam. In the output bam the sequence of the reads corresponds to the sequence from reference they mapped to and cytosine is also converted based on its methylation status.  
 ```
 usage: nanomethphase bam2bis --bam BAM --reference REFERENCE --methylcallfile
                              METHYLCALLFILE --output OUTPUT [-h]
-                             [--window WINDOW] [--motif MOTIF]
                              [--mapping_quality MAPPING_QUALITY]
-                             [--methylation] [--threads THREADS]
-                             [--chunk_size CHUNK_SIZE]
-                             [--include_supplementary] [--overwrite]
+                             [--motif MOTIF] [--methylation]
+                             [--include_supplementary] [--window WINDOW]
+                             [--threads THREADS] [--chunk_size CHUNK_SIZE]
+                             [--overwrite]
 
 Convert a bam file to a bisulfite format for nice visualization in IGV
 
@@ -351,25 +351,25 @@ required arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  --mapping_quality MAPPING_QUALITY, -mq MAPPING_QUALITY
+                        An integer value to specify minimum mapping quality of
+                        the read. Default is 20
+  --motif MOTIF, -mt MOTIF
+                        The motif you called methylation for (cpg), Currently
+                        just cpg.
+  --methylation, -met   Output methylation call and frequency for converted
+                        reads.
+  --include_supplementary, -is
+                        Also include supplementary reads
   --window WINDOW, -w WINDOW
                         if you want to only convert reads for a region or
                         chromosome. You must insert region like this chr1 or
                         chr1:1000-100000.
-  --motif MOTIF, -mt MOTIF
-                        The motif you called methylation for (cpg), Currently
-                        just cpg.
-  --mapping_quality MAPPING_QUALITY, -mq MAPPING_QUALITY
-                        An integer value to specify thereshold for filtering
-                        reads based om mapping quality. Default is >=20
-  --methylation, -met   Output methylation call and frequency for converted
-                        reads.
   --threads THREADS, -t THREADS
                         Number of parallel processes. Default is 4
   --chunk_size CHUNK_SIZE, -cs CHUNK_SIZE
                         Number of reads send to each proccessor. Default is
                         100
-  --include_supplementary, -is
-                        Also include supplementary reads
   --overwrite, -ow      If output files exist overwrite it
 ```  
 
@@ -378,37 +378,11 @@ optional arguments:
 In order to get the phased methylome you also need the following third-party
 software:
 
-Nanopolish, f5c >=v0.7, Megalodon, or DeepSignal to call CpG methylation. Note that when NanoMethPhase phases methylation, it matches the read coordinates from methylcall file to the read coordinates from bam file. Therefore, the optimal results will be when the same bam used for methylation calling is used for NanoMethPhase phasing. This is the case for methylation callers such as nanopolsih and f5c because they need an input bam file to call methylation, so the same bam can be used for NanoMethPhase as well. If you use megalodon, you can also specify the appropriate option to tell megalodon to also outputs the bam file that it uses to call methylation and use this bam for NanoMethPhase for optimal results.  
+Nanopolish, f5c >=v0.7 (f5c is an optimised re-implementation of Nanopolish), Megalodon, or DeepSignal to call CpG methylation (More info regarding methylation callers provided at the end of tutorial). Note that when NanoMethPhase phases methylation, it matches the read coordinates from methylcall file to the read coordinates from bam file. Therefore, the optimal results will be when the same bam used for methylation calling is used for NanoMethPhase phasing. This is the case for methylation callers such as nanopolsih and f5c because they need an input bam file to call methylation, so the same bam can be used for NanoMethPhase as well. If you use megalodon, you can also specify the appropriate option to tell megalodon to also outputs the bam file.  
 
 Clair3 or other variant callers to call variants for your sample. Alternatively, you might already have variant calling data for example from short-read sequencing.
 
 WhatsHap to phase variants. You may use other phasing tools or phased vcf input, however the phase information for the phased heterozygous variants, that are used by NanoMethPhase, must be indicated by 0|1 or 1|0 in the start of 10th column of the vcf file.  
-
-Output Per-read methylation call file from the current versions of aforementioned methylation callers are compatible with NanoMethPhase. However, here are some more information for per-read methylation call input compatibility:  
-For nanopolish or f5c, as long as the version you are using produces the following columns and the CpG coordinates are zero-based and coordinates for both strands is based on positive strand (positions for the CpG from both strands are the same) then the file is compatible:
-```
-chromosome	strand	start	end	read_name	log_lik_ratio	log_lik_methylated	log_lik_unmethylated	num_calling_strands	num_motifs	sequence
-chr2	+	200000365	200000365	50152360-5abb-4e1f-9ce0-c08a49d65b57	3.91	-142.10	-146.01	1	1	GTGAACGCTTT
-chr2	+	200000776	200000776	50152360-5abb-4e1f-9ce0-c08a49d65b57	-20.59	-243.72	-223.13	1	1	TAACTCGATTT
-chr2	-	200000365	200000365	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	4.93	-257.29	-262.22	1	1	GTGAACGCTTT
-chr2	-	200000776	200000776	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	-11.09	-225.59	-214.50	1	1	TAACTCGATTT
-```
-For megalodon, as long as the version you are using has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than positive strand then the file is compatible (The methylation call file must be only for methylation. Do not use per-read methylation file that has multiple modification calls, e.g. 5mC and 5hmC):
-```
-read_id	chrm	strand	pos	mod_log_prob	can_log_prob	mod_base
-56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21488565        -0.9126647710800171     -0.5132502558405262     m
-56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21486004        -0.8042076826095581     -0.5931974211226271     m
-2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21488566        -3.271272659301758      -0.03869726232984402    m
-2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21486005        -4.3451995849609375     -0.013053750265459633   m
-```
-For DeepSignal, as long as the version you are using has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than the positive strand then the file is compatible:
-```
-chrom   pos     strand  pos_in_strand   readname        read_strand     prob_0  prob_1  called_label    k_mer
-chr11	2669073	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.09740365	0.90259635	1	TACCCTGCCGTATCAGT
-chr11	2669107	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.13432296	0.865677	1	ACTGGCTACGTGTGGCT
-chr11	2669074	-	-1	12652f63-7676-4ad8-b7bf-af1aec4b282d	t	0.13398732	0.8660127	1	CACTGATACGGCAGGGT
-chr11	2669108	-	-1	12652f63-7676-4ad8-b7bf-af1aec4b282d	t	0.12144542	0.87855464	1	GAGCCACACGTAGCCAG
-```  
 
 ## 1- Methylation Calling
 Here we use nanopolish
@@ -550,5 +524,32 @@ Note: When dis_merge (dis.merge) is greater than minlen, current versions of DSS
 
 # Example:
 We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.  
-If you want to try workflow from basecalling to methylation phasing we have included a subset of [NA12878 data](https://github.com/nanopore-wgs-consortium/NA12878/blob/master/Genome.md) (chr11:2600000-2800000) at [this link](https://www.bcgsc.ca/downloads/NanoMethPhase/test_data.tar.gz) which you can download and try.
+If you want to try workflow from basecalling to methylation phasing we have included a subset of [NA12878 data](https://github.com/nanopore-wgs-consortium/NA12878/blob/master/Genome.md) (chr11:2600000-2800000) at [this link](https://www.bcgsc.ca/downloads/NanoMethPhase/test_data.tar.gz) which you can download and try.  
+  
+# More info about methylation callers
+Output Per-read methylation call file from the current versions of methylation callers mentiond above (Nanopolish, f5c>=v0.7, Megalodon, and DeepSignal) are compatible with NanoMethPhase. Here are some more information about their output per-read methylation call file and compatibility with methyl_call_processor:  
+nanopolish and f5c>=v0.7 produce the following columns and the CpG coordinates are zero-based and coordinates for both strands is based on positive strand (positions for the CpG from both strands are the same):
+```
+chromosome	strand	start	end	read_name	log_lik_ratio	log_lik_methylated	log_lik_unmethylated	num_calling_strands	num_motifs	sequence
+chr2	+	200000365	200000365	50152360-5abb-4e1f-9ce0-c08a49d65b57	3.91	-142.10	-146.01	1	1	GTGAACGCTTT
+chr2	+	200000776	200000776	50152360-5abb-4e1f-9ce0-c08a49d65b57	-20.59	-243.72	-223.13	1	1	TAACTCGATTT
+chr2	-	200000365	200000365	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	4.93	-257.29	-262.22	1	1	GTGAACGCTTT
+chr2	-	200000776	200000776	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	-11.09	-225.59	-214.50	1	1	TAACTCGATTT
+```
+Megalodon per-read text methylation call output has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than positive strand (The methylation call file must be only for methylation. Do not use per-read methylation file that has multiple modification calls, e.g. 5mC and 5hmC):
+```
+read_id	chrm	strand	pos	mod_log_prob	can_log_prob	mod_base
+56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21488565        -0.9126647710800171     -0.5132502558405262     m
+56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21486004        -0.8042076826095581     -0.5931974211226271     m
+2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21488566        -3.271272659301758      -0.03869726232984402    m
+2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21486005        -4.3451995849609375     -0.013053750265459633   m
+```
+DeepSignal methylation call file has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than the positive strand:
+```
+chrom   pos     strand  pos_in_strand   readname        read_strand     prob_0  prob_1  called_label    k_mer
+chr11	2669073	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.09740365	0.90259635	1	TACCCTGCCGTATCAGT
+chr11	2669107	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.13432296	0.865677	1	ACTGGCTACGTGTGGCT
+chr11	2669074	-	-1	12652f63-7676-4ad8-b7bf-af1aec4b282d	t	0.13398732	0.8660127	1	CACTGATACGGCAGGGT
+chr11	2669108	-	-1	12652f63-7676-4ad8-b7bf-af1aec4b282d	t	0.12144542	0.87855464	1	GAGCCACACGTAGCCAG
+```  
 
