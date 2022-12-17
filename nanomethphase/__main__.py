@@ -1264,7 +1264,8 @@ def main_phase(args):
     else:
         sys.stderr.write("There is no phased variant in your vcf file or "
                                      "Noe reads could be tagged.\n")
-    fasta.close()
+    if reference is not None:
+        fasta.close()
 
 def main_bam2bis(args):
     motif = args.motif
