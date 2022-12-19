@@ -457,7 +457,7 @@ See nanomethphase methyl_call_processor help for more information and how to run
 ### 4-2 Getting haplotype methylome:
 
 ```
-nanomethphase  phase -mc MethylationCall.bed.gz -o Test_methylome -of bam,methylcall,bam2bis -b sorted.bam -r hg38.fa -v Phased.vcf -t 64
+nanomethphase phase -b sorted.bam -v Phased.vcf -mc MethylationCall.bed.gz -r hg38.fa -o Test_methylome -of bam,methylcall,bam2bis -t 64
 ```  
 
 You can select 3 output options:
@@ -516,7 +516,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 
 Coordinates are zero-based in per-read info file.
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for the next runs if you wish to try different thresholds of options (-mq, -mbq, -mv, -hr, -abq, -ind, -is). Note that per-read file from previous version **cannot** be used to run with different mapping quality or include/exclude supplementary reads.  
+Having this file allow you to use it instead of the vcf file which improves the speed significantly for the next runs. This also allows you to try different thresholds of options (-mq, -mbq, -mv, -hr, -abq, -ind, -is). Note that per-read file from previous version **cannot** be used to run with different mapping quality or include/exclude supplementary reads.  
   
 ### 4-3 Differential Methylation Analysis:
 
