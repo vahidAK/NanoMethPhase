@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-library(sys)
+suppressPackageStartupMessages(library("sys"))
 suppressPackageStartupMessages(library("R.utils"))
 suppressPackageStartupMessages(library("DSS"))
 args <- commandArgs(trailingOnly = TRUE)
