@@ -1715,12 +1715,12 @@ def phase_parser(subparsers):
                           required=False,
                           default="bam2bis,methylcall",
                           help=("What type of output you want (bam,bam2bis,"
-                                "methylcall). Default is bam2bis,methylcall."
+                                "methylcall). Default is bam2bis,methylcall. "
                                 "bam: outputs phased reads to seperate bam "
-                                "files."
+                                "files. "
                                 "bam2bis: outputs phased reads to seperate "
                                 "bam files converted to bisulfite bam format "
-                                "for visualisation in IGV."
+                                "for visualisation in IGV. "
                                 "methylcall: outputs phased methylcall and "
                                 "methylation frequency files for seperate "
                                 "haplotypes. You can select any format and "
@@ -2044,19 +2044,19 @@ def dma_parser(subparsers):
                             required=False,
                             help=("Comma seperated Columns in the methylation "
                                   "frequency files that include the following "
-                                  "information, respectively:"
+                                  "information, respectively: "
                                   "chromosome\tstart(CG_position)\tstrand\tcoverage\t"
-                                  "methylation_frequency."
+                                  "methylation_frequency. "
                                   "If the methylation frequency file does not "
                                   "have strand level information then just "
-                                  "enter columns number for"
+                                  "enter columns number for "
                                   "chromosome\tstart(CG_position)\tcoverage\t"
-                                  "methylation_frequency."
+                                  "methylation_frequency. "
                                   "Default is that your input files are "
                                   "already in a format required by DSS so you "
-                                  "do not need to select any column."
+                                  "do not need to select any column. "
                                   "If you are giving as input NanoMethPhase "
-                                  "frequency files select this:"
+                                  "frequency files select this: "
                                   "--columns 1,2,4,5,7. When strand column is given the assumption "
                                   "is that negative strand positions are 1 bp greater than positive strand, "
                                   "just like NanoMethPhase's frequency outputs."))
@@ -2086,7 +2086,7 @@ def dma_parser(subparsers):
                                                         ),
                                                  "DSS_DMA.R"),
                             help="The path to the DSS_DMA.R script file."
-                            " By default the script that was shipped during nanomethphase"
+                            " By default the script that was shipped during nanomethphase "
                             "installation will be used.")
     sdma_input.add_argument("--overwrite", "-ow",
                             action="store_true",
