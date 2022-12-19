@@ -516,7 +516,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 
 Coordinates are zero-based in per-read info file.
                        
-Having this file allow you to use it instead of the vcf file which improves the speed significantly for the next runs. This also allows you to try different thresholds of options (-mq, -mbq, -mv, -hr, -abq, -ind, -is). Note that per-read file from previous version **cannot** be used to run with different mapping quality or include/exclude supplementary reads.  
+Having this file allow you to use it along with the vcf file which improves the speed significantly for the next runs. This also allows you to try different thresholds of options (-mq, -mbq, -mv, -hr, -abq, -ind, -is). Note that per-read file from previous version **cannot** be used to run with different mapping quality or include/exclude supplementary reads.  
   
 ### 4-3 Differential Methylation Analysis:
 
