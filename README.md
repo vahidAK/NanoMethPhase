@@ -137,10 +137,10 @@ General optional arguments:
   -h, --help            show this help message and exit
   --outformat OUTFORMAT, -of OUTFORMAT
                         What type of output you want (bam,bam2bis,methylcall).
-                        Default is bam2bis,methylcall.bam: outputs phased
-                        reads to seperate bam files.bam2bis: outputs phased
+                        Default is bam2bis,methylcall. bam: outputs phased
+                        reads to seperate bam files. bam2bis: outputs phased
                         reads to seperate bam files converted to bisulfite bam
-                        format for visualisation in IGV.methylcall: outputs
+                        format for visualisation in IGV. methylcall: outputs
                         phased methylcall and methylation frequency files for
                         seperate haplotypes. You can select any format and
                         multiple or all of them seperated by comma.
@@ -237,15 +237,15 @@ General optional arguments.:
   --columns COLUMNS, -c COLUMNS
                         Comma seperated Columns in the methylation frequency
                         files that include the following information,
-                        respectively:chromosome start(CG_position) strand
-                        coverage methylation_frequency.If the methylation
+                        respectively: chromosome start(CG_position) strand
+                        coverage methylation_frequency. If the methylation
                         frequency file does not have strand level information
-                        then just enter columns number forchromosome
+                        then just enter columns number for chromosome
                         start(CG_position) coverage
-                        methylation_frequency.Default is that your input files
+                        methylation_frequency. Default is that your input files
                         are already in a format required by DSS so you do not
-                        need to select any column.If you are giving as input
-                        NanoMethPhase frequency files select this:--columns
+                        need to select any column. If you are giving as input
+                        NanoMethPhase frequency files select this: --columns
                         1,2,4,5,7. When strand column is given the assumption
                         is that negative strand positions are 1 bp greater
                         than positive strand, just like NanoMethPhase's
@@ -261,7 +261,7 @@ General optional arguments.:
   --script_file SCRIPT_FILE, -sf SCRIPT_FILE
                         The path to the DSS_DMA.R script file. By default the
                         script that was shipped during
-                        nanomethphaseinstallation will be used.
+                        nanomethphase installation will be used.
   --overwrite, -ow      If output files exist overwrite them.
 
 optional arguments that will be used in DSS DMLtest function.:
