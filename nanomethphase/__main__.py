@@ -1733,7 +1733,7 @@ def phase_parser(subparsers):
                           help="If it is your second try and you have per read info"
                                " file from the first try you can specify the per-read"
                                " file to make the process faster. This also enables you "
-                               "to try different threshols of options (-mv, -mbq, mq, -hr, -abq),"
+                               "to try different threshols of options (-mv, -mbq, -mq, -hr, -abq),"
                                " include/exclude indels, include/exclude supp reads.")
     sp_input.add_argument("--min_variant", "-mv",
                           action="store",
@@ -1747,9 +1747,9 @@ def phase_parser(subparsers):
                           type=float,
                           required=False,
                           default=0.75,
-                          help=("0-1 .The maximum ratio (# of SNVs from one halotype over the other)"
-                                " between haplotypes to tag as H1 or H2 (H2/H1 when #SNVs at H1 > H2"
-                                " and H1/H2 when #SNVs at H2 > H1). Default is 0.75"))
+                          help=("0-1 .The maximum ratio (# of variants from one halotype over the other)"
+                                " between haplotypes to tag as H1 or H2 (H2/H1 when #variants at H1 > H2"
+                                " and H1/H2 when #variants at H2 > H1). Default is 0.75"))
     sp_input.add_argument("--mapping_quality", "-mq",
                           action="store",
                           type=int,
