@@ -2044,20 +2044,22 @@ def dma_parser(subparsers):
                             required=False,
                             help=("Comma seperated Columns in the methylation "
                                   "frequency files that include the following "
-                                  "information, respectively:\n"
-                                  "chromosome\tstart\tstrand\tcoverage\t"
-                                  "methylation_frequency.\n"
+                                  "information, respectively:"
+                                  "chromosome\tstart(CG_position)\tstrand\tcoverage\t"
+                                  "methylation_frequency."
                                   "If the methylation frequency file does not "
                                   "have strand level information then just "
-                                  "enter columns number for\n"
-                                  "chromosome\tstart\tcoverage\t"
-                                  "methylation_frequency.\n"
+                                  "enter columns number for"
+                                  "chromosome\tstart(CG_position)\tcoverage\t"
+                                  "methylation_frequency."
                                   "Default is that your input files are "
                                   "already in a format required by DSS so you "
-                                  "do not need to select any column.\n"
-                                  "If you giving as input NanoMethPhase "
+                                  "do not need to select any column."
+                                  "If you are giving as input NanoMethPhase "
                                   "frequency files select this:"
-                                  "--columns 1,2,4,5,7\n"))
+                                  "--columns 1,2,4,5,7. When strand column is given the assumption "
+                                  "is that negative strand positions are 1 bp greater than positive strand, "
+                                  "just like NanoMethPhase's frequency outputs."))
     sdma_input.add_argument("--coverage", "-cov",
                             action="store",
                             type=int,
@@ -2066,7 +2068,8 @@ def dma_parser(subparsers):
                             help=("Minimum coverage cutoff. Default is 1. It is "
                                   "recommended that do not filter for "
                                   "coverage as DSS R package will take care "
-                                  "of it."))
+                                  "of it. For strand-level inputs, this coverage is per-strand."
+                                  " When no --columns is given, coverage option is skipped."))
     sdma_input.add_argument("--Rscript", "-rs",
                             action="store",
                             type=str,

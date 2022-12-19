@@ -237,19 +237,25 @@ General optional arguments.:
   --columns COLUMNS, -c COLUMNS
                         Comma seperated Columns in the methylation frequency
                         files that include the following information,
-                        respectively: chromosome start strand coverage
-                        methylation_frequency. If the methylation frequency
-                        file does not have strand level information then just
-                        enter columns number for chromosome start coverage
-                        methylation_frequency. Default is that your input
-                        files are already in a format required by DSS so you
-                        do not need to select any column. If you giving as
-                        input NanoMethPhase frequency files select
-                        this:--columns 1,2,4,5,7
+                        respectively:chromosome start(CG_position) strand
+                        coverage methylation_frequency.If the methylation
+                        frequency file does not have strand level information
+                        then just enter columns number forchromosome
+                        start(CG_position) coverage
+                        methylation_frequency.Default is that your input files
+                        are already in a format required by DSS so you do not
+                        need to select any column.If you are giving as input
+                        NanoMethPhase frequency files select this:--columns
+                        1,2,4,5,7. When strand column is given the assumption
+                        is that negative strand positions are 1 bp greater
+                        than positive strand, just like NanoMethPhase's
+                        frequency outputs.
   --coverage COVERAGE, -cov COVERAGE
                         Minimum coverage cutoff. Default is 1. It is
                         recommended that do not filter for coverage as DSS R
-                        package will take care of it.
+                        package will take care of it. For strand-level inputs, 
+                        this coverage is per-strand. When no --columns is 
+                        given, coverage option is skipped.
   --Rscript RSCRIPT, -rs RSCRIPT
                         The path to a particular instance of Rscript to use.
   --script_file SCRIPT_FILE, -sf SCRIPT_FILE
@@ -519,8 +525,9 @@ nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1
 ```
 
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes. -dm, -ml, -mcg, -sms, -smf, -ed, -pvc, -dc and -pct options and their help are from DSS R package and you can read DSS documentation for more information.
-callDMR.txt is the main output you need that stores differentially methylated regions (You can also refine your DMR list afterwars based on "diff.methy" column, which is the difference of average methylations from both comparisons, and/or areaStat), callDML.txt is the output that stores differentialy methylated loci (you can also use "diff" column that is difference of average methylations from both comparisons to further refine your DML list) and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) page. Note that During DMA, for inputs with methylation from both strands like HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
-Note: When dis_merge (dis.merge) is greater than minlen, current versions of DSS package just consider dis.merge equal to minlen. Therefore, the maximum dis.merge is minlen even if you selected a dis.merge greater than minlen (You can read issue #31 [here](https://github.com/haowulab/DSS/issues) for more info.).  
+callDMR.txt is the main output you need that stores differentially methylated regions, callDML.txt is the output that stores differentialy methylated loci and DMLtest.txt is the output that stores statistical test results for all loci. For more documentation of output data refere to [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) documentation page. During DMA, for inputs with methylation from both strands, such as HP1 and HP2 here, methylation information (number of all reads/calls and number of modified reads/calls) will be aggregated from both strands on the positive strand for each CpG site (stored in "ReadyForDSS" files. CpG position of negative strand converted to positive strand by subtracting 1). Therefore, the cordinates of the outputs are based on the positive strand.  
+Note: You can refine your DMR list afterwars based on "diff.methy" column, which is the difference of average methylations from both comparisons, and/or areaStat. For list of DMLs, You can also use "diff" column that is difference of average methylations from both comparisons to further refine your DML list. You may use other columns as well to further refine your results.  
+Note: When dis_merge (dis.merge) is greater than minlen, current versions of DSS package just consider dis.merge equal to minlen. Therefore, the maximum dis.merge is minlen even if you selected a dis.merge greater than minlen (You can read issue #31 [here](https://github.com/haowulab/DSS/issues/31) for more info.).  
 
 # Example:
 We have included an example data in the Example_Data folder which you can use for a quick detection of haplotype methylome on 1Mb of chr21.  
@@ -528,7 +535,7 @@ If you want to try workflow from basecalling to methylation phasing we have incl
   
 # More info about methylation callers
 Output Per-read methylation call file from the current versions of methylation callers mentiond above (Nanopolish, f5c>=v0.7, Megalodon, and DeepSignal) are compatible with NanoMethPhase. Here are some more information about their output per-read methylation call file and compatibility with methyl_call_processor:  
-nanopolish and f5c>=v0.7 produce the following columns and the CpG coordinates are zero-based and coordinates for both strands is based on positive strand (positions for the CpG from both strands are the same):
+nanopolish and f5c>=v0.7 produce the following columns and the CpG coordinates are zero-based and coordinates for both strands are based on positive strand (positions for the CpG from both strands are the same):
 ```
 chromosome	strand	start	end	read_name	log_lik_ratio	log_lik_methylated	log_lik_unmethylated	num_calling_strands	num_motifs	sequence
 chr2	+	200000365	200000365	50152360-5abb-4e1f-9ce0-c08a49d65b57	3.91	-142.10	-146.01	1	1	GTGAACGCTTT
@@ -536,7 +543,7 @@ chr2	+	200000776	200000776	50152360-5abb-4e1f-9ce0-c08a49d65b57	-20.59	-243.72	-
 chr2	-	200000365	200000365	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	4.93	-257.29	-262.22	1	1	GTGAACGCTTT
 chr2	-	200000776	200000776	607a605c-f01b-4b02-a8d5-b4c8adb88e6b	-11.09	-225.59	-214.50	1	1	TAACTCGATTT
 ```
-Megalodon per-read text methylation call output has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than positive strand (The methylation call file must be only for methylation. Do not use per-read methylation file that has multiple modification calls, e.g. 5mC and 5hmC):
+Megalodon per-read text methylation call output has the following columns and CpG coordinates are zero-based and coordinates of negative strand are 1 bp greater than positive strand (The methylation call file must be only for methylation. Do not use per-read methylation file that has multiple modification calls, e.g. 5mC and 5hmC):
 ```
 read_id	chrm	strand	pos	mod_log_prob	can_log_prob	mod_base
 56780a98-ccb3-41a5-8ed1-fc069412fc13    chr11   +       21488565        -0.9126647710800171     -0.5132502558405262     m
@@ -544,7 +551,7 @@ read_id	chrm	strand	pos	mod_log_prob	can_log_prob	mod_base
 2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21488566        -3.271272659301758      -0.03869726232984402    m
 2cc45d27-6084-49f1-b156-34501adc7651    chr11   -       21486005        -4.3451995849609375     -0.013053750265459633   m
 ```
-DeepSignal methylation call file has the following columns and CpG coordinates are zero-based and coordinates of negative strand is 1 unit greater than the positive strand:
+DeepSignal methylation call file has the following columns and CpG coordinates are zero-based and coordinates of negative strand are 1 bp greater than the positive strand:
 ```
 chrom   pos     strand  pos_in_strand   readname        read_strand     prob_0  prob_1  called_label    k_mer
 chr11	2669073	+	-1	19b5bd8e-0a50-449d-8dc1-ea2dc4e2fe2b	t	0.09740365	0.90259635	1	TACCCTGCCGTATCAGT
