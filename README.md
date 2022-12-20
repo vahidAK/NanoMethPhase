@@ -514,7 +514,7 @@ During DMA, dma module also aggregates all calls and methylated calls from both 
 | Position:BaseQuality:HP1_Variants | Position and Phred quality of bases from read at haplotype 1.                                                           |
 | Position:BaseQuality:HP2_Variants | Position and Phred quality of bases from read at haplotype 2.                                                           |  
 
-Coordinates are zero-based in per-read info file.
+Base quality for indels represent the base quality of the first base. Coordinates are zero-based in per-read info file.
                        
 Having this file allow you to use it along with the vcf file which improves the speed significantly for the next runs. This also allows you to try different thresholds of options (-mq, -mbq, -mv, -hr, -abq, -ind, -is). Note that per-read file from previous version **cannot** be used to run with different mapping quality or include/exclude supplementary reads.  
   
