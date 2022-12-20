@@ -450,14 +450,14 @@ For the full tutorial please refer to
 ### 4-1 First you need to process and index the methylation call file.
 
 ```
-nanomethphase methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -k2,2n -k3,3n | bgzip > MethylationCall.bed.gz && tabix -p bed MethylationCall.bed.gz
+python nanomethphase.py methyl_call_processor -mc MethylationCall.tsv -t 20 | sort -k1,1 -k2,2n -k3,3n | bgzip > MethylationCall.bed.gz && tabix -p bed MethylationCall.bed.gz
 ```  
 See nanomethphase methyl_call_processor help for more information and how to run it for other methylation callers.
 
 ### 4-2 Getting haplotype methylome:
 
 ```
-nanomethphase phase -b sorted.bam -v Phased.vcf -mc MethylationCall.bed.gz -r hg38.fa -o Test_methylome -of bam,methylcall,bam2bis -t 64
+python nanomethphase.py phase -b sorted.bam -v Phased.vcf -mc MethylationCall.bed.gz -r hg38.fa -o Test_methylome -of bam,methylcall,bam2bis -t 64
 ```  
 
 You can select 3 output options:
@@ -521,7 +521,7 @@ Having this file allow you to use it along with the vcf file which improves the 
 ### 4-3 Differential Methylation Analysis:
 
 ```
-nanomethphase dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -o <output directory> -op <output Prefix>
+python nanomethphase.py dma -c 1,2,4,5,7 -ca <path to methylation frequency for haplotype1> -co <path to methylation frequency for haplotype2> -o <output directory> -op <output Prefix>
 ```
 
 We use [DSS](https://www.bioconductor.org/packages/release/bioc/html/DSS.html) R/Bioconductor package to call DMRs between haplotypes. -dm, -ml, -mcg, -sms, -smf, -ed, -pvc, -dc and -pct options and their help are from DSS R package and you can read DSS documentation for more information.
