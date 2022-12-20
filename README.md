@@ -464,7 +464,8 @@ You can select 3 output options:
 
 ***bam***: output phased bam files
 
-***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.). The headers for methylation call files are as follow:
+***methylcall***: this will output phased methylation call (MethylCall.tsv, read level data) and methylation frequency files (MethylFrequency.tsv, Aggregated methylations for each region. These files can be used to detect differentially methylated regions between haplotype using *dma* module.).  
+The headers for methylation call files are as follow:
 
 | **Shorten**      | **Description** |
 | --------------:  | ----------------------------------------------------------------------------------|
@@ -475,7 +476,7 @@ You can select 3 output options:
 | read_name        | Read ID.                                                                          |
 | llr_Or_DeltaProb | llr for CpG from nanopolosh (Or delta prob in case of megalodon and deepsignal).  |  
 
-CpG coordinates are zero-based here.
+CpG coordinates are zero-based here and coordinates from both strands are based on positive strand.  
 
 The headers for methylation frequency files are as follow:
 
@@ -489,7 +490,7 @@ The headers for methylation frequency files are as follow:
 | NumOfModCalls | Number of all CpGs that called as methylated.        |
 | MethylFreq    | Methylation frequency (NumOfModCalls/NumOfAllCalls). |  
 
-CpG coordinates are zero-based here.
+CpG coordinates are zero-based here and coordinates of negative strand are 1 bp greater than the positive strand.  
 
 **NOTE:** NanoMethPhase outputs strand-level frequency files to not lose strand information if you needed them. However, usually methlation information from both strands are aggregated for each CpG to have per-CpG methylation. If you want to aggregate the information from both strand, you need to aggregate number of all calls and number of methylated calls from both strands for each CpG and then calculate the new frequency for each CpG site. For example, following command aggregates data from both strands and calculates new methylation frequency for each CpG (You need to install [datamash](https://www.gnu.org/software/datamash/) before using this command):  
 
