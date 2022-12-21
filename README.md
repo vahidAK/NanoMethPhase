@@ -26,6 +26,7 @@ Table of Contents
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation
+version 1.1.0 can only be installed from the source or through the released versions.  
 
 To use from source (git repo):
 ```
