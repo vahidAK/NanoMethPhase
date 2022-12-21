@@ -15,17 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-library(sys)
+suppressPackageStartupMessages(library("sys"))
 suppressPackageStartupMessages(library("R.utils"))
 suppressPackageStartupMessages(library("DSS"))
-
-#The first argument is first file, second is second file and third is your
-#output name, forth argument is the  dis.merge in callDMR function, fifth
-#argument is the minlen in callDMR function and the sixth argument is the minCG
-#in callDMR function. the DMA will be first file vs second file.  So your first
-#file should be case and second shoud be control
 args <- commandArgs(trailingOnly = TRUE)
 print("######################################################################################################################")
+print(paste("DSS version:",packageVersion("DSS"))) 
 print("DSS Arguments:")
 print("Case:")
 print(args[1])
@@ -33,23 +28,23 @@ print("Control:")
 print(args[2])
 print("Output:")
 print(args[3])
-print("dis_merge:")
+print("dis.merge (dis_merge):")
 print(args[4])
-print("min_len")
+print("minlen")
 print(args[5])
-print("min_CG")
+print("minCG")
 print(args[6])
-print("Smoothing_span")
+print("smoothing.span (smoothing_span)")
 print(args[7])
-print("smoothing_flag")
+print("smoothing (smoothing_flag)")
 print(args[8])
-print("pval_cutoff")
+print("p.threshold (pval_cutoff)")
 print(args[9])
-print("delta")
+print("delta (delta_cutoff)")
 print(args[10])
-print("pct_sig")
+print("pct.sig (pct_sig)")
 print(args[11])
-print("equal_disp")
+print("equal.disp (equal_disp)")
 print(args[12])
 print("######################################################################################################################")
 print("reading files")
