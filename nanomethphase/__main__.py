@@ -2217,7 +2217,7 @@ def main():
         prog="nanomethphase",
         description="NanoMethPhase: For phasing Nanopore Reads and "
                     "Methylation")
-    parser.add_argument('--version', action='version', version='%(prog)s 1.1.0_dev')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.1.0')
     subparsers = parser.add_subparsers(title="Modules")
     methyl_call_processor_parser(subparsers)
     phase_parser(subparsers)
