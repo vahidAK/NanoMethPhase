@@ -603,10 +603,10 @@ def methcall2bed(readlist,
                     continue
                 if logratio < 0:
                     methylated_sites.append(cpg_pos)
-                    llr_methylated.append(str(logratio))
+                    llr_methylated.append(str(-(logratio)))
                 else:
                     unmethylated_sites.append(cpg_pos)
-                    llr_unmethylated.append(str(logratio))
+                    llr_unmethylated.append(str(-(logratio)))
             all_positions= sorted(methylated_sites + unmethylated_sites)
             if all_positions:
                 if not methylated_sites:
@@ -1841,16 +1841,21 @@ def methyl_call_processor_parser(subparsers):
                                  "the default binary probability threshold to call a base modified is 0.8. "
                                  "This will translate to a call threshold of 0.6 (0.8 - 0.2 = 0.6). "
                                  "Therefore, at 0.6 threshold bases between 0.8 and 0.2 probability"
-                                 " will be considered as ambiguous and more than 0.8 as methylated "
-                                 "and less than 0.2 as unmethylated.\n"
+                                 " will be considered as ambiguous and >=0.8 as methylated "
+                                 "and <=0.2 as unmethylated.\n"
                                  "For deepsignal, as for megalodon, this call threshold is delta probability"
                                  " (prob_methylated - prob_unmethylated). In deepsignal itself,"
                                  " the default for this is 0.\n"
                                  " For tombo, as for nanopolish, call threshold is the llr." 
                                  " However, in tombo llr <= -threshold is methylated  and "
                                  "llr >= threshold is unmethylated. For example tombo:2 means"
-                                 "any call with llr 2 to -2 is ambiguous, more than 2 "
-                                 "unmethylated and less than -2 is methylated. "
+                                 "any call with llr 2 to -2 is ambiguous, >=2 "
+                                 "unmethylated and <=-2 is methylated. Note that to make tombo"
+                                 " valuse as other methylation callers for downstream phasing where"
+                                 " positive llr or delta probability "
+                                 "means methylated and negative means unmethylated, in the output "
+                                 "proccessed call file we covert tombo's negative llrs"
+                                 " to positive and positive llrs to negative."
                                  "NOTE: if you are using tombo you must use the "
                                  "Tombo_PerReadExtract.py script in the script folder to"
                                  "convert per-read stat from tombo h5 file to tsv file "
@@ -2194,5 +2199,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
