@@ -7,9 +7,9 @@ Access [here](https://doi.org/10.1186/s13059-021-02283-5)
   
 iss5 branch Update
 =============
-Support for megalodon and deepsignal also added to the master branch (production ready branch) and a new version has been released. Use the master branch or new released version for them. 
+Support for megalodon and deepsignal from this branch also added to the master branch (production ready branch) and a new version has been released. You can Use the master branch or the new released version for them. 
 
-**23 Dec 2022:** Major bug fixed to correct phasing when **tombo** used for methylation calling. If you used iss5 branch on tombo before this fix you need to clone the branch again and rerun methyl_call_proccessor and then do phasing.  
+**23 Dec 2022:** Major bug fixed to correct calculation of phased methylation frequencies and converted bam2bis files when **tombo** used for methylation calling (Currently support for tombo as the methylation caller is in iss5 branch). If you used iss5 branch on **tombo** per-read methylation call data before this fix you need to clone the branch again and rerun methyl_call_proccessor and then do phasing or other downstream steps.  
 
 5 Nov 2021: previously, in the dma module, we added 1 unit to the start position of the CpG to convert it to one-based cordinate. However, we have changed it and the start cordinate will be as the input and if input is zero-based the DMRs will be also zero-based and if the input is one-based DMRs will be also one based. We changed this as it is possible to use dma module for other data not just nanomethphase outputs.  
 dma module update (10 Oct 2022): Increased scientific notation option in the DSS_DMA.R script (results in less scientific notation) to not have coordinates of DMRs with scientific notation (This could happen very rarely in rare cases however we increased scipen option to prevent this).  
