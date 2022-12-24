@@ -5,21 +5,18 @@
 **Citation:** Akbari, V., Garant, JM., O’Neill, K. et al. Megabase-scale methylation phasing using nanopore long reads and NanoMethPhase. Genome Biol 22, 68 (2021).
 Access [here](https://doi.org/10.1186/s13059-021-02283-5)  
   
-Update
+iss5 branch Update
 =============
-Support for other methylation callers , in addition to Nanopolsih, including Megalodon, DeepSignal and Tombo has been added to NanoMethPhase. However, note that NanoMethPhase primarily developed using Nanopolish, so this is the preferred methylation caller.  
-[f5c](https://github.com/hasindu2008/f5c) versions >=v0.7 outputs similar columns as later nanopolish versions (as follows) during methylation calling, therefore it can also be used for methylation calling.  
+Support for megalodon and deepsignal also added to the master branch (production ready branch) and a new version has been released. Use the master branch or new released version for them. 
 
-```
-chromosome	strand	start	end	read_name	log_lik_ratio	log_lik_methylated	log_lik_unmethylated	num_calling_strands	num_motifs	sequence
-```
+**23 Dec 2022:** Major bug fixed to correct phasing when **tombo** used for methylation calling. If you used iss5 branch on tombo before this fix you need to clone the branch again and rerun methyl_call_proccessor and then do phasing.  
 
 5 Nov 2021: previously, in the dma module, we added 1 unit to the start position of the CpG to convert it to one-based cordinate. However, we have changed it and the start cordinate will be as the input and if input is zero-based the DMRs will be also zero-based and if the input is one-based DMRs will be also one based. We changed this as it is possible to use dma module for other data not just nanomethphase outputs.  
 dma module update (10 Oct 2022): Increased scientific notation option in the DSS_DMA.R script (results in less scientific notation) to not have coordinates of DMRs with scientific notation (This could happen very rarely in rare cases however we increased scipen option to prevent this).  
 
 Overall Workflow
 =============
-![](docs/images/NanoMethPhaseFlowChart.png)
+<img src="docs/images/NanoMethPhaseFlowChart.png" width="600" height="600">
 
 Table of Contents
 =================
