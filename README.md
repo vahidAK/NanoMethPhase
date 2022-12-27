@@ -459,7 +459,7 @@ See nanomethphase methyl_call_processor help for more information and how to run
 ```
 python nanomethphase.py phase -b sorted.bam -v Phased.vcf -mc MethylationCall.bed.gz -r hg38.fa -o Test_methylome -of bam,methylcall,bam2bis -t 64
 ```  
-You can select ```--include_indels``` option to also use indels during phasing. To include supplementary reads as well select ```--include_supplementary``` option.  
+You can select ```--include_indels``` option to also use indels during phasing.  
   
 You can select 3 output options:
 
