@@ -788,20 +788,23 @@ def main_methyl_call_processor(args):
     threads = args.threads
     chunk = args.chunk_size
     if args.motif.lower() == "cpg":
-        args.motif = 'CG'
+        motif = 'CG'
     else:
         raise TypeError("Please select motif type correctly (cpg)")
     if tool=="nanopolish":
+        chrom_index= 0
         readID_index= 4
         start_index= 2
         strand_index= 1
         modprob_index= 5
     elif tool=="deepsignal":
+        chrom_index= 0
         readID_index= 4
         start_index= 1
         strand_index= 2
         modprob_index= 7
     elif tool=="megalodon":
+        chrom_index= 1
         readID_index= 0
         start_index= 3
         strand_index= 2
@@ -820,6 +823,7 @@ def main_methyl_call_processor(args):
     meth = openfile(MethylCallfile)
     prev_info= next(meth).rstrip().split('\t')
     try: #check if first line is header
+        prev_chrom= prev_info[chrom_index]
         prev_readID= prev_info[readID_index]
         prev_start= int(prev_info[start_index])
         prev_strand= prev_info[strand_index]
@@ -828,6 +832,7 @@ def main_methyl_call_processor(args):
         all_lines= all_lines - 1
     except: #skip first line
         prev_info= next(meth).rstrip().split('\t')
+        prev_chrom= prev_info[chrom_index]
         prev_readID= prev_info[readID_index]
         prev_start= int(prev_info[start_index])
         prev_strand= prev_info[strand_index]
@@ -843,9 +848,11 @@ def main_methyl_call_processor(args):
             start= int(line_info[start_index])
             if (line_info[readID_index] == prev_readID and
                 line_info[strand_index] == prev_strand and
+                line_info[chrom_index] == prev_chrom and
                 abs(start -  prev_start) < 100000):
                 prev_readID = line_info[readID_index]
                 prev_strand = line_info[strand_index]
+                prev_chrom= line_info[chrom_index]
                 prev_start= start
                 readlist.append(line)
             else:
@@ -854,6 +861,7 @@ def main_methyl_call_processor(args):
                 readlist.append(line)
                 prev_readID = line_info[readID_index]
                 prev_strand = line_info[strand_index]
+                prev_chrom= line_info[chrom_index]
                 prev_start= start
             if len(chunklist) == chunk:
                 feedlist.append(chunklist)
@@ -862,7 +870,7 @@ def main_methyl_call_processor(args):
                 p = mp.Pool(threads)
                 results = p.starmap(methcall2bed,
                                     list(zip(feedlist,
-                                             repeat(args.motif),
+                                             repeat(motif),
                                              repeat(float(callthresh)),
                                              repeat(tool))))
                 p.close()
@@ -880,7 +888,7 @@ def main_methyl_call_processor(args):
             p = mp.Pool(len(feedlist))
             results = p.starmap(methcall2bed,
                                 list(zip(feedlist,
-                                         repeat(args.motif),
+                                         repeat(motif),
                                          repeat(float(callthresh)),
                                          repeat(tool))))
             p.close()
@@ -1086,13 +1094,13 @@ def main_phase(args):
                                            llr_unmethylated):
                                 if (i >= start and i <= end ):
                                     if i not in methylcall_dict:
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
                                                             read_id, j]
                                     elif abs(j) > abs(methylcall_dict[i][-1]):
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
@@ -1148,13 +1156,13 @@ def main_phase(args):
                                            llr_unmethylated):
                                 if (i >= start and i <= end ):
                                     if i not in methylcall_dict:
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
                                                             read_id, j]
                                     elif abs(j) > abs(methylcall_dict[i][-1]):
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
@@ -1384,13 +1392,13 @@ def main_bam2bis(args):
                                    llr_unmethylated):
                         if (i >= start and i <= end ):
                             if i not in methylcall_dict:
-                                methylcall_dict[i]= [record[0],
+                                methylcall_dict[i]= [true_ref_name,
                                                     i,
                                                     i+1,
                                                     strand,
                                                     read_id, j]
                             elif abs(j) > abs(methylcall_dict[i][-1]):
-                                methylcall_dict[i]= [record[0],
+                                methylcall_dict[i]= [true_ref_name,
                                                     i,
                                                     i+1,
                                                     strand,
@@ -2217,7 +2225,7 @@ def main():
         prog="nanomethphase",
         description="NanoMethPhase: For phasing Nanopore Reads and "
                     "Methylation")
-    parser.add_argument('--version', action='version', version='%(prog)s 1.1.0')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.2.0_dev')
     subparsers = parser.add_subparsers(title="Modules")
     methyl_call_processor_parser(subparsers)
     phase_parser(subparsers)
