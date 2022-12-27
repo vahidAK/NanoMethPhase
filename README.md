@@ -25,8 +25,7 @@ Table of Contents
   * [Detecting Haplotype Methylome](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#4--detecting-haplotype-methylome)  
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
-# Installation
-version 1.1.0 can only be installed from the source or through the released versions.  
+# Installation 
 
 To use from source (git repo):
 ```
@@ -38,9 +37,9 @@ python nanomethphase.py
 ```
 To use latest released version:
 ```
-wget https://github.com/vahidAK/NanoMethPhase/archive/refs/tags/v1.1.0.zip
-unzip v1.1.0.zip
-cd NanoMethPhase-1.1.0/
+wget https://github.com/vahidAK/NanoMethPhase/archive/refs/tags/v1.2.0.zip
+unzip v1.2.0.zip
+cd NanoMethPhase-1.2.0/
 conda env create -f envs/environment.yaml
 conda activate nanomethphase
 python nanomethphase.py
