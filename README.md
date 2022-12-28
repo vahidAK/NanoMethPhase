@@ -27,7 +27,6 @@ Table of Contents
   
 # Installation 
 
-To use from source (git repo):
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
 cd NanoMethPhase
@@ -35,15 +34,6 @@ conda env create -f envs/environment.yaml
 conda activate nanomethphase
 python nanomethphase.py
 ```
-To use latest released version:
-```
-wget https://github.com/vahidAK/NanoMethPhase/archive/refs/tags/v1.2.0.zip
-unzip v1.2.0.zip
-cd NanoMethPhase-1.2.0/
-conda env create -f envs/environment.yaml
-conda activate nanomethphase
-python nanomethphase.py
-```  
 
 # NanoMethPhase Modules
 ## methyl_call_processor: 
