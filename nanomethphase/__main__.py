@@ -45,18 +45,6 @@ import tabix
 import math
 from tqdm import tqdm
 
-
-def countReadsInBAM(filename):
-    stats = pysam.idxstats(filename)
-    nreads = 0
-    for row in stats.split("\n"):
-        row.rstrip("\r")
-        fields = row.split("\t")
-        if len(fields) > 2 and fields[0] != '*':
-            nreads += int(fields[2])
-    return nreads
-
-
 def getChromsFromBAM(filename):
     chroms = []
     stats = pysam.idxstats(filename)
@@ -69,73 +57,92 @@ def getChromsFromBAM(filename):
 
 def get_base_info(feed_list,
                   alignment_file,
-                  map_qual,
-                  chrom,
-                  include_supp):
+                  chrom):
     read_HP_list= list()
     samfile = pysam.AlignmentFile(alignment_file, 'rb')
     for info in feed_list:
         HP,position,ref,alt= info
         try:
-            try:
-                sam_pileup= samfile.pileup(chrom,
-                                           position,
-                                           position+1,
-                                           truncate=True)
-            except:
-                sam_pileup= samfile.pileup(chrom[3:],
-                                           position,
-                                           position+1,
-                                           truncate=True)
+            sam_pileup= samfile.pileup(chrom,
+                                       position,
+                                       position+1,
+                                       truncate=True)
         except:#The cordiniate is not found so ignore it
-            warnings.warn("{}:{}-{} does not exist in alignment file."
+            warnings.warn("Variant {} {} did not find or do not have any map "
+                          "reads in the alignment file. Check if correct"
+                          "bam file is given or bam is indexed and not corrupted."
                           " Skipping it.".format(chrom,
-                                                   position,
                                                    position+1))
             continue
         for pileupcolumn in sam_pileup:
             pileupcolumn.set_min_base_quality(0)
             if pileupcolumn.pos == position:
                 for pileupread in pileupcolumn.pileups:
-                    if not include_supp:
-                        if (pileupread.alignment.mapping_quality < map_qual or
-                            pileupread.alignment.is_supplementary):
-                            continue
-                    else:
-                        if pileupread.alignment.mapping_quality < map_qual:
-                            continue
                     if pileupread.is_del or pileupread.is_refskip:
                         continue
-                    if pileupread.alignment.is_reverse:
-                        strand = "-"
-                    else:
-                        strand = "+"
+                    read_id= pileupread.alignment.query_name
+                    read_mq= pileupread.alignment.mapping_quality
                     read_id= pileupread.alignment.query_name
                     read_len= pileupread.alignment.query_alignment_length
                     read_start= pileupread.alignment.reference_start
                     read_end= pileupread.alignment.reference_end
-                    phred= pileupread.alignment.query_qualities[
-                            pileupread.query_position]
-                    read_base= pileupread.alignment.query_sequence[
-                            pileupread.query_position]
-                    read_base= read_base.upper()
                     flag= pileupread.alignment.flag
+                    phred= pileupread.alignment.query_qualities[
+                                                pileupread.query_position]
+                    
+                    if pileupread.alignment.is_supplementary:
+                        suppl_flag= str(flag)+":yes"
+                    else:
+                        suppl_flag= str(flag)+":no"
+                    if pileupread.alignment.is_reverse:
+                        strand = "-"
+                    else:
+                        strand = "+"
                     key_per_read = (chrom,read_start,read_end,
-                                    read_id,strand,flag,read_len)
+                                    read_id,strand,suppl_flag,
+                                    str(read_len)+":"+str(read_mq))
                     val= [position,phred]
-                    if HP == '1|0' and read_base == alt:
-                        read_HP_list.append([(*key_per_read,"HP1"),
-                                    ':'.join(map(str,val))])
-                    elif HP == '1|0' and read_base == ref:
-                        read_HP_list.append([(*key_per_read,"HP2"),
-                                    ':'.join(map(str,val))])
-                    elif HP == '0|1' and read_base == alt:
-                        read_HP_list.append([(*key_per_read,"HP2"),
-                                    ':'.join(map(str,val))])
-                    elif HP == '0|1' and read_base == ref:
-                        read_HP_list.append([(*key_per_read,"HP1"),
-                                    ':'.join(map(str,val))])
+                    read_base= None
+                    if HP == '1|0' or HP == '0|1':
+                        if len(ref) == 1 and len(alt)==1: # dealing with mismatches
+                            read_base= pileupread.alignment.query_sequence[
+                                    pileupread.query_position]
+                        elif len(ref) > 1 and len(alt) == 1: #dealing with deletions
+                            if pileupread.indel < 0 and abs(pileupread.indel) == len(ref) -1:
+                                read_base= pileupread.alignment.query_sequence[
+                                        pileupread.query_position]
+                            elif pileupread.indel == 0:
+                                read_base = pileupread.alignment.query_sequence[
+                                                pileupread.query_position:pileupread.query_position+len(ref)]
+                            else:
+                                continue
+                        elif len(ref) == 1 and len(alt) > 1: #dealing with insertions
+                            if pileupread.indel > 0 and pileupread.indel == len(alt) -1:
+                                read_base= pileupread.alignment.query_sequence[
+                                                pileupread.query_position:pileupread.query_position+len(alt)]
+                            elif pileupread.indel == 0:
+                                read_base= pileupread.alignment.query_sequence[
+                                        pileupread.query_position]
+                            else:
+                                continue
+                                
+                    if read_base is not None:
+                        read_base= read_base.upper()
+                        if HP == '1|0' and read_base == alt:
+                            read_HP_list.append([(*key_per_read,"HP1"),
+                                        ':'.join(map(str,val + [alt]))])
+                        elif HP == '1|0' and read_base == ref:
+                            read_HP_list.append([(*key_per_read,"HP2"),
+                                        ':'.join(map(str,val + [ref]))])
+                        elif HP == '0|1' and read_base == alt:
+                            read_HP_list.append([(*key_per_read,"HP2"),
+                                        ':'.join(map(str,val + [alt]))])
+                        elif HP == '0|1' and read_base == ref:
+                            read_HP_list.append([(*key_per_read,"HP1"),
+                                        ':'.join(map(str,val + [ref]))])
+    samfile.close()
     return read_HP_list
+
 
 
 def bam_info_extractor(read,
@@ -186,6 +193,22 @@ def bam_info_extractor(read,
         warnings.warn("{} does not have a read sequence,CIGAR"
                       ", or base quality information. "
                       "Skipping the read".format(read_id))
+
+
+def get_indel(vcf):
+    indels= set()
+    with openfile(vcf) as vcf_file:
+        for line in vcf_file:
+            if line.startswith('#'):
+                continue
+            line= line.rstrip().split('\t')
+            if (line[9].startswith("0|1") or
+                line[9].startswith("1|0") or
+                line[9].startswith("0/1") or
+                line[9].startswith("1/0")):
+                if len(line[3]) > 1 or len(line[4]) > 1:
+                    indels.add((line[0],str(int(line[1])-1)))
+    return indels
 
 
 def outexist_phase(overwrite,
@@ -313,7 +336,7 @@ def outputs(outformat,
                                 "end",
                                 "strand",
                                 "read_name",
-                                "log_lik_ratio\n"])
+                                "llr_Or_DeltaProb\n"])
         outCall1.write(headerCall)
         outCall2.write(headerCall)
         headerFreq = "\t".join(["chromosome",
@@ -354,11 +377,14 @@ def openalignment(alignment_file,
                 bamiter = bam.fetch(window_chrom)
                 count= bam.count(window_chrom)
             except:
+                warnings.warn("{} is not in the alignment "
+                              "file Or alignment is truncated or corrupt indexed."
+                              " Skipping it".format(window_chrom))
                 count= 0
                 bamiter= ""
     else:
         bamiter = bam.fetch(until_eof=True)
-        count = 0
+        count = None
     return bamiter, bam, count
 
 
@@ -402,7 +428,7 @@ def openfile(file):
 def FrequencyCalculator(file_path):
     """
     Calculating methylation frequency for each phased methylation call
-    file.  The output methylation frequency file include fractional
+    file. The output methylation frequency file include fractional
     methylation which can be used for differential methylation analysis
     and detection of differentially methylated regions (DMR)
     """
@@ -430,8 +456,8 @@ def methcall2bed(readlist,
                  callthresh,
                  tool):
     """
-    This function converts nanopolish methylation call file to a bed
-    format and also splits multi-group CpG sites to single group.
+    This function converts methylation call file to a bed
+    format and also splits multi-group CpG sites, in case of nanopolish, to single group.
     """
     read_list= list()
     if tool == "nanopolish":
@@ -582,7 +608,6 @@ def methcall2bed(readlist,
                               ','.join(map(str,methylated_sites)),
                               ','.join(map(str,unmethylated_sites)))
                 read_list.append(append_info)
-
     elif tool == "tombo":
         for read in readlist:
             methylated_sites = []
@@ -624,7 +649,6 @@ def methcall2bed(readlist,
                                 ','.join(map(str,methylated_sites)),
                                 ','.join(map(str,unmethylated_sites)))
                 read_list.append(append_info)
-                
     return read_list
 
 
@@ -664,60 +688,139 @@ def read2bis(read_sam_list):
     return [HP]+sam_list[0:-5]+[ref_seq]+[sam_list[-4]]+[all_tags]
 
 
-def vcf2dict_phase(vcf, window):
+def vcf2dict_phase(vcf, 
+                   window):
     """
     This function converts the input vcf file to haplotype1 and
     haplotype2 dictionaries to be used for read phasing.
     """
+    vcf_file = openfile(vcf)
     vcf_dict= defaultdict(list)
-    for line in vcf:
+    for line in vcf_file:
         if line.startswith("#"):
             continue
         line_list = line.rstrip().split('\t')
-        if (len(line_list[3]) == 1 and
-            len(line_list[4])==1 and
-            line_list[3] != "." and
-            line_list[4] != "."):
-            chrom = line_list[0]
-            pos = int(line_list[1])-1#VCF file is 1-based
-            if line_list[9].startswith('1|0') or line_list[9].startswith('0|1'):
-                if window is None:
-                    vcf_dict[chrom].append((line_list[9].split(':')[0]
-                    ,pos,line_list[3].upper(),line_list[4].upper()))
-                elif len(window.split(':')) == 1:
-                    if (chrom == window.split(':')[0] or
-                        chrom == 'chr'+window.split(':')[0]):
-                        vcf_dict[chrom].append((line_list[9].split(':')[0]
-                    ,pos,line_list[3].upper(),line_list[4].upper()))
-                else:
-                    if (chrom == window.split(':')[0] or
-                        chrom == 'chr'+window.split(':')[0]):
-                        if len(window.split(':')[1].split('-')) == 1:
-                            window_start= int(window.split(':')[1])
-                            if pos > window_start - 1000000:
-                                vcf_dict[chrom].append((line_list[9].split(':')[0]
-                                                        ,pos,line_list[3].upper(),
-                                                        line_list[4].upper()))
-                        elif len(window.split(':')[1].split('-')) == 2:
-                            window_start= int(window.split(':')[1].split('-')[0])
-                            window_end= int(window.split(':')[1].split('-')[1])
-                            if (pos > window_start - 1000000 and
-                                pos < window_end + 1000000):
-                                vcf_dict[chrom].append((line_list[9].split(':')[0]
-                                                        ,pos,line_list[3].upper(),
-                                                        line_list[4].upper()))
-                        else:
-                            raise Exception("Given window {} is not valid"
-                                            ". Please give a valid window."
-                                            "".format(window))
+        chrom = line_list[0]
+        pos = int(line_list[1])-1#VCF file is 1-based
+        if line_list[9].startswith('1|0') or line_list[9].startswith('0|1'):
+            if window is None:
+                vcf_dict[chrom].append((line_list[9].split(':')[0],
+                                        pos,line_list[3].upper(),
+                                        line_list[4].upper()))
+            elif len(window.split(':')) == 1:
+                if (chrom == window.split(':')[0]):
+                    vcf_dict[chrom].append((line_list[9].split(':')[0],
+                                            pos,line_list[3].upper(),
+                                            line_list[4].upper()))
+            else:
+                if (chrom == window.split(':')[0]):
+                    if len(window.split(':')[1].split('-')) == 1:
+                        window_start= int(window.split(':')[1])
+                        if pos > window_start - 1000000:
+                            vcf_dict[chrom].append((line_list[9].split(':')[0],
+                                                    pos,line_list[3].upper(),
+                                                    line_list[4].upper()))
+                    elif len(window.split(':')[1].split('-')) == 2:
+                        window_start= int(window.split(':')[1].split('-')[0])
+                        window_end= int(window.split(':')[1].split('-')[1])
+                        if (pos > window_start - 1000000 and
+                            pos < window_end + 1000000):
+                            vcf_dict[chrom].append((line_list[9].split(':')[0],
+                                                    pos,line_list[3].upper(),
+                                                    line_list[4].upper()))
+                    else:
+                        raise Exception("Given window {} is not valid"
+                                        ". Please give a valid window."
+                                        "".format(window))
+    vcf_file.close()
     return vcf_dict
 
+
+def per_read_variant(vcf_dict,
+                     bam_file,
+                     chunk,
+                     threads,
+                     perReadinfo,
+                     window):
+    chrom_list = sorted(list(vcf_dict.keys()))
+    for chrom in chrom_list:
+        per_read_hp = defaultdict(lambda: defaultdict(list))
+        bamiter, bam, count = openalignment(bam_file, chrom)
+        if count > 0:
+            feed_list= list(vcf_dict[chrom])
+            feed_list = [feed_list[x:x+chunk]
+                                 for x in range(0, len(feed_list),
+                                                chunk)]
+            feed_list = [feed_list[x:x+threads]
+                                 for x in range(0, len(feed_list),
+                                                threads)]
+            description= "Tagging variants to reads from {}: ".format(chrom)
+            with tqdm(total=len(feed_list),
+                desc=description,
+                bar_format="{l_bar}{bar} [ Estimated time left: {remaining} ]"
+                                  ) as pbar:
+                for vcf_info_list in feed_list:
+                    p= mp.Pool(len(vcf_info_list))
+                    results= p.starmap(get_base_info,
+                                       list(zip(vcf_info_list,
+                                                repeat(bam_file),
+                                                repeat(chrom))))
+                    p.close()
+                    p.join()
+                    for result in results:
+                        if result is not None:
+                            for read_info in result:
+                                key,val= read_info
+                                per_read_hp[key[0:-1]][key[-1]].append(val)
+                    pbar.update(1)
+            for key in list(per_read_hp.keys()):
+                out_to_write= list()
+                try:
+                    hp1_variants= per_read_hp[key]['HP1']
+                    hp1_count= str(len(hp1_variants))
+                except:
+                    hp1_count= '0'
+                if hp1_count == '0':
+                    hp1_variants= ['NA']
+                    
+                try:
+                    hp2_variants= per_read_hp[key]['HP2']
+                    hp2_count= str(len(hp2_variants))
+                except:
+                    hp2_count= '0'   
+                if hp2_count == '0':
+                    hp2_variants= ['NA']
+                    
+                if window is None or len(window.split(':')) == 1:
+                    out_to_write= list(map(str,key)) + [','.join(sorted(hp1_variants)), 
+                                                        ','.join(sorted(hp2_variants))]
+                elif len(window.split(':')[1].split('-')) == 1:
+                    window_start= int(window.split(':')[1])
+                    if key[2] >= window_start:
+                        out_to_write= list(map(str,key)) + [','.join(sorted(hp1_variants)), 
+                                                            ','.join(sorted(hp2_variants))]
+                else:
+                    window_start= int(window.split(':')[1].split('-')[0])
+                    window_end= int(window.split(':')[1].split('-')[1])
+                    if key[2] >= window_start and key[1] <= window_end:
+                        out_to_write= list(map(str,key)) + [','.join(sorted(hp1_variants)), 
+                                                            ','.join(sorted(hp2_variants))]
+                if out_to_write:
+                    perReadinfo.write('\t'.join(out_to_write)+'\n')
+        else:
+            warnings.warn("{} in vcf file does not have any mapped reads in alignment "
+                          "file Or alignment is truncated or corrupt indexed."
+                          " Skipping it".format(chrom))
+        per_read_hp.clear()
+        bam.close()
+    perReadinfo.close()
+    
 
 def main_methyl_call_processor(args):
     """
     This is the methyl_call_processor module which converts input
-    methylation call from nanopolish to a single-group CpG bed format
-    file for downstream step during Phasing.
+    methylation call to a bed format
+    file for downstream steps.
     """
     MethylCallfile = os.path.abspath(args.MethylCallfile)
     tool,callthresh= args.tool_and_callthresh.split(":")
@@ -725,39 +828,62 @@ def main_methyl_call_processor(args):
     threads = args.threads
     chunk = args.chunk_size
     if args.motif.lower() == "cpg":
-        args.motif = 'CG'
+        motif = 'CG'
     else:
         raise TypeError("Please select motif type correctly (cpg)")
-    if tool=="nanopolish" or tool=="tombo":
+    if tool=="nanopolish":
+        chrom_index= 0
         readID_index= 4
         start_index= 2
         strand_index= 1
+        modprob_index= 5
     elif tool=="deepsignal":
+        chrom_index= 0
         readID_index= 4
         start_index= 1
         strand_index= 2
+        modprob_index= 7
     elif tool=="megalodon":
+        chrom_index= 1
         readID_index= 0
         start_index= 3
         strand_index= 2
+        modprob_index= 4
+    elif tool=="tombo":
+        chrom_index= 0
+        readID_index= 4
+        start_index= 2
+        strand_index= 1
+        modprob_index= 3
     else:
         raise TypeError("Please select tool correctly")
     meth = openfile(MethylCallfile)
-    next(meth)  # To skip the header
-    prev_info= next(meth).rstrip().split('\t')
-    prev_readID= prev_info[readID_index]
-    prev_start= int(prev_info[start_index])
-    prev_strand= prev_info[strand_index]
-    all_lines = 1
+    all_lines = 0
     for line in meth:
         all_lines += 1
     meth.close()
-    meth = openfile(MethylCallfile)
-    next(meth)  # To skip the header
     feedlist = []
     chunklist = []
     readlist= []
     tqdm_add= 0
+    meth = openfile(MethylCallfile)
+    prev_info= next(meth).rstrip().split('\t')
+    try: #check if first line is header
+        prev_chrom= prev_info[chrom_index]
+        prev_readID= prev_info[readID_index]
+        prev_start= int(prev_info[start_index])
+        prev_strand= prev_info[strand_index]
+        prev_modprob= float(prev_info[modprob_index])
+        readlist.append('\t'.join(prev_info))
+        all_lines= all_lines - 1
+    except: #skip first line
+        prev_info= next(meth).rstrip().split('\t')
+        prev_chrom= prev_info[chrom_index]
+        prev_readID= prev_info[readID_index]
+        prev_start= int(prev_info[start_index])
+        prev_strand= prev_info[strand_index]
+        readlist.append('\t'.join(prev_info))
+        all_lines= all_lines - 2
     with tqdm(total=all_lines,
               desc="MethylCallProcessor: ", bar_format=
               "{l_bar}{bar} [ Estimated time left: {remaining} ]") as pbar:
@@ -768,9 +894,11 @@ def main_methyl_call_processor(args):
             start= int(line_info[start_index])
             if (line_info[readID_index] == prev_readID and
                 line_info[strand_index] == prev_strand and
+                line_info[chrom_index] == prev_chrom and
                 abs(start -  prev_start) < 100000):
                 prev_readID = line_info[readID_index]
                 prev_strand = line_info[strand_index]
+                prev_chrom= line_info[chrom_index]
                 prev_start= start
                 readlist.append(line)
             else:
@@ -779,6 +907,7 @@ def main_methyl_call_processor(args):
                 readlist.append(line)
                 prev_readID = line_info[readID_index]
                 prev_strand = line_info[strand_index]
+                prev_chrom= line_info[chrom_index]
                 prev_start= start
             if len(chunklist) == chunk:
                 feedlist.append(chunklist)
@@ -787,7 +916,7 @@ def main_methyl_call_processor(args):
                 p = mp.Pool(threads)
                 results = p.starmap(methcall2bed,
                                     list(zip(feedlist,
-                                             repeat(args.motif),
+                                             repeat(motif),
                                              repeat(float(callthresh)),
                                              repeat(tool))))
                 p.close()
@@ -805,7 +934,7 @@ def main_methyl_call_processor(args):
             p = mp.Pool(len(feedlist))
             results = p.starmap(methcall2bed,
                                 list(zip(feedlist,
-                                         repeat(args.motif),
+                                         repeat(motif),
                                          repeat(float(callthresh)),
                                          repeat(tool))))
             p.close()
@@ -817,6 +946,7 @@ def main_methyl_call_processor(args):
             feedlist = []
             pbar.update(tqdm_add)
     meth.close()
+    
 
 def main_phase(args):
     """
@@ -830,14 +960,10 @@ def main_phase(args):
     else:
         raise Exception("Courrently only CpG motif is supported")
     hapRatio = args.hapratio
-    minSNV= args.min_SNV
-    if args.vcf is not None:
-        vcf = os.path.abspath(args.vcf)
-    elif args.per_read is not None:
+    minvariant= args.min_variant
+    vcf = os.path.abspath(args.vcf)
+    if args.per_read is not None:
         per_read_file= os.path.abspath(args.per_read)
-    else:
-        raise Exception("You have not specified either vcf file or per read"
-                                " info file. You must specify one of those")
     bam_file = os.path.abspath(args.bam)
     threads = args.threads
     MinBaseQuality = args.min_base_quality
@@ -852,94 +978,52 @@ def main_phase(args):
     outformat = args.outformat.lower().split(',')
     fasta, tb= outformats_phase(outformat,reference,MethylCallfile)
     outexist_phase(args.overwrite,out1,out2)# Check if output files exist
-    unprocessed_chrom = set() 
-    if args.vcf is not None:
+    if args.per_read is None:
         perReadinfo= open(out1+"_HP2_PerReadInfo.tsv", 'w')
         perReadinfo.write("#Chromosome\tReadRefStart\tReadRefEnd\tReadID\t"
-                          "Strand\tReadFlag\tReadLength\tHaplotype\t"
-                          "NumOfPhasedSNV\tPosition:BaseQuality\n")
-        vcf_file = openfile(vcf)
-        vcf_dict = vcf2dict_phase(vcf_file,args.window)
-        chrom_list = sorted(list(vcf_dict.keys()))
-        for chrom in chrom_list:
-            per_read_hp = defaultdict(list)
-            bamiter, bam, count = openalignment(bam_file, chrom)
-            if count > 0:
-                feed_list= vcf_dict[chrom]
-                feed_list = [feed_list[x:x+chunk]
-                                     for x in range(0, len(feed_list),
-                                                    chunk)]
-                feed_list = [feed_list[x:x+threads]
-                                     for x in range(0, len(feed_list),
-                                                    threads)]
-                description= "Tagging SNVs to reads from {}: ".format(chrom)
-                with tqdm(total=len(feed_list),
-                    desc=description,
-                    bar_format="{l_bar}{bar} [ Estimated time left: {remaining} ]"
-                                      ) as pbar:
-                    for vcf_info_list in feed_list:
-                        p= mp.Pool(len(vcf_info_list))
-                        results= p.starmap(get_base_info,
-                                           list(zip(vcf_info_list,
-                                                    repeat(bam_file),
-                                                    repeat(MappingQuality),
-                                                    repeat(chrom),
-                                                    repeat(args.include_supplementary))))
-                        p.close()
-                        p.join()
-                        for result in results:
-                            if result is not None:
-                                for read_info in result:
-                                    key,val= read_info
-                                    per_read_hp[key].append(val)
-                        pbar.update(1)
-                for key,val in per_read_hp.items():
-                    if args.window is None or len(args.window.split(':')) == 1:
-                        perReadinfo.write('\t'.join(map(str,key))+
-                                          '\t'+str(len(val))+
-                                          '\t'+','.join(val)+'\n')
-                    elif len(args.window.split(':')[1].split('-')) == 1:
-                        window_start= int(args.window.split(':')[1])
-                        if key[2] >= window_start:
-                            perReadinfo.write('\t'.join(map(str,key))+
-                                              '\t'+str(len(val))+
-                                              '\t'+','.join(val)+'\n')
-                    else:
-                        window_start= int(args.window.split(':')[1].split('-')[0])
-                        window_end= int(args.window.split(':')[1].split('-')[1])
-                        if key[2] >= window_start and key[1] <= window_end:
-                            perReadinfo.write('\t'.join(map(str,key))+
-                                              '\t'+str(len(val))+
-                                              '\t'+','.join(val)+'\n')
-            else:
-                warnings.warn("{} does not have any mapped reads in alignment "
-                              "file Or alignment is truncated or corrupt indexed. "
-                              "Skipping it.".format(chrom))
-                unprocessed_chrom.add(chrom)
-        perReadinfo.close()
-        vcf_file.close()
+                          "Strand\tReadFlag:Is_Supplementary\tReadLength:MappingQuality\t"
+                          "Position:BaseQuality:HP1_Variants\t"
+                          "Position:BaseQuality:HP2_Variants\n")
+        vcf_dict = vcf2dict_phase(vcf,
+                                  args.window)
+        per_read_variant(vcf_dict,
+                            bam_file,
+                            chunk,
+                            threads,
+                            perReadinfo,
+                            args.window)
         per_read= openfile(out1+"_HP2_PerReadInfo.tsv")
     else:
         per_read= openfile(per_read_file)
     chrom_list= set()
     read_dictHP1 = defaultdict(list)
     read_dictHP2 = defaultdict(list)
+    ignore_phased_indels= set()
+    if not args.include_indels:
+        ignore_phased_indels= get_indel(vcf)
     for line in per_read:
         if line.startswith("#"):
             continue
         line= line.rstrip().split('\t')
-        key= tuple(line[3:7])
-        haplotypes= line[9].split(',')
+        if int(line[6].split(':')[1]) < MappingQuality:
+            continue
+        if not args.include_supplementary and line[5].split(':')[1]=="yes":
+            continue
+        key= (line[3],line[4],
+                   line[5].split(':')[0],
+                   line[6].split(':')[0])
         chrom_list.add(line[0])
-        if line[7] == "HP1":
-            for haplotype in haplotypes:
-                position,phred= haplotype.split(':')
-                if int(phred) >= MinBaseQuality:
+        for haplotype in line[7].split(','):
+            if haplotype != 'NA':
+                position,phred,base= haplotype.split(':')
+                if ((line[0],position) not in ignore_phased_indels and
+                    int(phred) >= MinBaseQuality):
                     read_dictHP1[key].append(int(phred))
-        elif line[7] == "HP2":
-            for haplotype in haplotypes:
-                position,phred= haplotype.split(':')
-                if int(phred) >= MinBaseQuality:
+        for haplotype in line[8].split(','):
+            if haplotype != 'NA':
+                position,phred,base= haplotype.split(':')
+                if ((line[0],position) not in ignore_phased_indels and
+                    int(phred) >= MinBaseQuality):
                     read_dictHP2[key].append(int(phred))
     per_read.close()
     if read_dictHP1 or read_dictHP2:
@@ -947,7 +1031,7 @@ def main_phase(args):
         high_qual_reads = 0
         h1 = 0
         h2 = 0
-        SNV_tagged_reads= 0
+        variant_tagged_reads= 0
         h1_bam2bis= 0
         h2_bam2bis= 0
         bamiter, bam_for_write, count = openalignment(bam_file,
@@ -955,7 +1039,8 @@ def main_phase(args):
         (outHP1Sam, outHP2Sam, outHP12BisSam, outHP22BisSam,
                                    outCall1,outCall2,outFreq1,
                                    outFreq2)= outputs(outformat,
-                                   bam_for_write,out1,out2)
+                                                      bam_for_write,out1,out2)
+        bam_for_write.close()
         sys.stderr.write("Read Seperation Process Started\n")
         if args.window is not None:
             chrom_list= [args.window]
@@ -997,7 +1082,7 @@ def main_phase(args):
                         key not in read_dictHP2):
                         continue
                     if key in read_dictHP1 or key in read_dictHP2:
-                        SNV_tagged_reads += 1
+                        variant_tagged_reads += 1
                     hp1_quals = read_dictHP1[key]
                     hp1_count = len(hp1_quals)
                     if hp1_count > 1:
@@ -1020,7 +1105,7 @@ def main_phase(args):
                                          x >= AverageBaseQuality])
                     if (hp1_count > hp2_count
                             and hp2_count/hp1_count <= hapRatio
-                            and hp1_count >= minSNV
+                            and hp1_count >= minvariant
                             and (mean_hp1_quals >= mean_hp2_quals
                                   or hp1_mean_count >= hp2_mean_count)):
                         h1 += 1
@@ -1055,13 +1140,13 @@ def main_phase(args):
                                            llr_unmethylated):
                                 if (i >= start and i <= end ):
                                     if i not in methylcall_dict:
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
                                                             read_id, j]
                                     elif abs(j) > abs(methylcall_dict[i][-1]):
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
@@ -1082,7 +1167,7 @@ def main_phase(args):
                                         if methylcall_dict[i][-1] <= 0]])
                     elif (hp2_count > hp1_count
                           and hp1_count/hp2_count <= hapRatio
-                          and hp2_count >= minSNV
+                          and hp2_count >= minvariant
                           and (mean_hp2_quals >= mean_hp1_quals
                                   or hp2_mean_count >= hp1_mean_count)):
                         h2 += 1
@@ -1117,13 +1202,13 @@ def main_phase(args):
                                            llr_unmethylated):
                                 if (i >= start and i <= end ):
                                     if i not in methylcall_dict:
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
                                                             read_id, j]
                                     elif abs(j) > abs(methylcall_dict[i][-1]):
-                                        methylcall_dict[i]= [record[0],
+                                        methylcall_dict[i]= [true_ref_name,
                                                             i,
                                                             i+1,
                                                             strand,
@@ -1166,7 +1251,7 @@ def main_phase(args):
                                     alignmentwriter(result, outHP12BisSam)
                                 else:
                                     alignmentwriter(result, outHP22BisSam)
-
+            bam.close()
         if 'bam' in outformat:
             outHP1Sam.close()
             outHP2Sam.close()
@@ -1204,18 +1289,15 @@ def main_phase(args):
                                          " mapped reads with quality more "
                                          "than {} at processed chroms: {}.\n"
                                          "Number of reads with at least one"
-                                         " tagged phased SNV: {}\n"
+                                         " tagged phased variant: {}\n"
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
-                                         "Unprocessed chromosomes. These either did not have mapped reads "
-                                         "in the alignment file or the alignment is truncated or corrupt indexed: {}\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
-                                                   SNV_tagged_reads,
+                                                   variant_tagged_reads,
                                                    h1,
-                                                   h2,
-                                                   ','.join(unprocessed_chrom)))
+                                                   h2))
         else:
             sys.stderr.write("Job Finished.\n"
                                          "Number of all reads at processed chroms: {}\n"
@@ -1224,22 +1306,20 @@ def main_phase(args):
                                          " mapped reads with quality more "
                                          "than {} at processed chroms: {}.\n"
                                          "Number of reads with at least one"
-                                         " tagged phased SNV: {}\n"
+                                         " tagged phased variant: {}\n"
                                          "Number of HP1 reads: {}\n"
                                          "Number of HP2 reads: {}\n"
-                                         "Unprocessed chromosomes. These either did not have mapped reads "
-                                         "in the alignment file or the alignment is truncated or corrupt indexed: {}\n"
                                          "".format(all_read,
                                                    MappingQuality,
                                                    high_qual_reads,
-                                                   SNV_tagged_reads,
+                                                   variant_tagged_reads,
                                                    h1,
-                                                   h2,
-                                                   ','.join(unprocessed_chrom)))
+                                                   h2))
     else:
-        sys.stderr.write("There is no phased SNV in your vcf file or "
+        sys.stderr.write("There is no phased variant in your vcf file or "
                                      "Noe reads could be tagged.\n")
-
+    if reference is not None:
+        fasta.close()
 
 def main_bam2bis(args):
     motif = args.motif
@@ -1273,7 +1353,7 @@ def main_bam2bis(args):
                                 "end",
                                 "strand",
                                 "read_name",
-                                "log_lik_ratio\n"]))
+                                "llr_Or_DeltaProb\n"]))
         outFreq= open(out+"MethylationFrequency.tsv", 'w')
         outFreq.write("\t".join(["chromosome",
                                 "start",
@@ -1293,6 +1373,7 @@ def main_bam2bis(args):
     bamiter, bam, counts= openalignment(bam_file, args.window)
     outBisbam= pysam.AlignmentFile(out+"_Converted2Bisulfite.bam",
                                             "wb", template=bam)
+    bam.close()
     if args.window is None:
         chroms= sorted(getChromsFromBAM(bam_file))
     else:
@@ -1357,13 +1438,13 @@ def main_bam2bis(args):
                                    llr_unmethylated):
                         if (i >= start and i <= end ):
                             if i not in methylcall_dict:
-                                methylcall_dict[i]= [record[0],
+                                methylcall_dict[i]= [true_ref_name,
                                                     i,
                                                     i+1,
                                                     strand,
                                                     read_id, j]
                             elif abs(j) > abs(methylcall_dict[i][-1]):
-                                methylcall_dict[i]= [record[0],
+                                methylcall_dict[i]= [true_ref_name,
                                                     i,
                                                     i+1,
                                                     strand,
@@ -1400,7 +1481,7 @@ def main_bam2bis(args):
                         for read in results:
                             if read is not None:
                                 alignmentwriter(read, outBisbam)
-
+        bam.close()
     outBisbam.close()
     if args.methylation:
         outCall.close()
@@ -1432,7 +1513,7 @@ def main_bam2bis(args):
                          "Number of converted reads: {}\n"
                          "".format(all_read, MappingQuality,
                                    high_quality_reads, converted_reads))
-
+    fasta.close()
 
 def main_dma(args):
     """
@@ -1499,6 +1580,7 @@ def main_dma(args):
                     out_prefix, out_putNumber), "w")
                 with openfile(case) as case_file:
                     next(case_file)  # Exclude header
+                    case_out.write("Chromosome\tPosition\tAllCalls\tModCalls\n")
                     for line in case_file:
                         line = line.rstrip().split('\t')
                         cov = int(line[col3-1])
@@ -1520,6 +1602,7 @@ def main_dma(args):
                     out_prefix, out_putNumber), "w")
                 with openfile(control) as control_file:
                     next(control_file)
+                    control_out.write("Chromosome\tPosition\tAllCalls\tModCalls\n")
                     for line in control_file:
                         line = line.rstrip().split('\t')
                         cov = int(line[col3-1])
@@ -1545,6 +1628,7 @@ def main_dma(args):
                 mod_sites_dict = defaultdict(int)
                 with openfile(case) as case_file:
                     next(case_file)
+                    case_out.write("Chromosome\tPosition\tAllCalls\tModCalls\n")
                     for line in case_file:
                         line = line.rstrip().split('\t')
                         cov = int(line[col4-1])
@@ -1578,6 +1662,7 @@ def main_dma(args):
                 mod_sites_dict = defaultdict(int)
                 with openfile(control) as control_file:
                     next(control_file)
+                    control_out.write("Chromosome\tPosition\tAllCalls\tModCalls\n")
                     for line in control_file:
                         line = line.rstrip().split('\t')
                         cov = int(line[col4-1])
@@ -1627,6 +1712,7 @@ def main_dma(args):
                                                            equal_disp),
         shell=True)
 
+
 def phase_parser(subparsers):
     """
     Specific argument parser for phase command.
@@ -1642,31 +1728,17 @@ def phase_parser(subparsers):
                           type=str,
                           required=True,
                           help="The path to the cordinate sorted bam file.")
+    sp_input.add_argument("--vcf", "-v",
+                          action="store",
+                          type=str,
+                          required=True,
+                          help="The path to the phased vcf file.")
     sp_input.add_argument("--output", "-o",
                           action="store",
                           type=str,
                           required=True,
                           help=("The path to directory and prefix to save "
                                 "files. e.g path/to/directory/prefix"))
-    sp_input = sub_phase.add_argument_group("one of these two are required arguments")
-    sp_input.add_argument("--vcf", "-v",
-                          action="store",
-                          type=str,
-                          required=False,
-                          help="The path to the whatshap phased vcf file.")
-    sp_input.add_argument("--per_read", "-pr",
-                          action="store",
-                          type=str,
-                          required=False,
-                          help="If it is your second try and you have per "
-                          "read info file from the first try there is no need "
-                          "to give vcf file, instead give the path to the per "
-                          "read info file. This will be significantly faster. "
-                          "NOTE: Running with different mapping quality or "
-                          "include/exclude supplementary reads is not supported using per-read file"
-                          ". So, if you want to try with a different mapping qualiy or "
-                          "include/exclude supplementary reads you need"
-                          " to provide vcf file again and start over.")
     sp_input = sub_phase.add_argument_group("conditional required arguments based"
                                             " on selected output format(s)")
     sp_input.add_argument("--reference", "-r",
@@ -1683,13 +1755,11 @@ def phase_parser(subparsers):
                           type=str,
                           required=False,
                           default=None,
-                          help=("If you want to phase methyl call file "
-                                "(methycall output format) to also calculate "
-                                "methylation frequency for each haplotype "
-                                "give the path to the bgziped methylation "
-                                "call file from methyl_call_processor Module."
-                                ))
-    sp_input = sub_phase.add_argument_group("optional arguments")
+                          help=("If you have selected methylcall or bam2bis "
+                                "output format to phase methylation or make mock bisulfite bams, "
+                                "give the path to the bgziped and indexed methylation "
+                                "call file from methyl_call_processor Module."))
+    sp_input = sub_phase.add_argument_group("General optional arguments")
     sp_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
@@ -1699,27 +1769,84 @@ def phase_parser(subparsers):
                           required=False,
                           default="bam2bis,methylcall",
                           help=("What type of output you want (bam,bam2bis,"
-                                "methylcall). Default is bam2bis,methylcall."
+                                "methylcall). Default is bam2bis,methylcall. "
                                 "bam: outputs phased reads to seperate bam "
-                                "files."
+                                "files. "
                                 "bam2bis: outputs phased reads to seperate "
                                 "bam files converted to bisulfite bam format "
-                                "for visualisation in IGV."
+                                "for visualisation in IGV. "
                                 "methylcall: outputs phased methylcall and "
                                 "methylation frequency files for seperate "
                                 "haplotypes. You can select any format and "
-                                "multiple or all of them seperated by comma."
-                                "NOTE: if you select bam2bis and/or "
-                                "methylcall, you must provide input "
-                                "methylcall.bed.gz file from "
-                                "methyl_call_processor module."))
-    sp_input.add_argument("--window", "-w",
+                                "multiple or all of them seperated by comma."))
+    sp_input.add_argument("--per_read", "-pr",
                           action="store",
                           type=str,
                           required=False,
-                          help=("if you want to only phase read for a region "
-                                "or chromosome. You must insert region like "
-                                "this chr1 or chr1:1000-100000."))
+                          default=None,
+                          help="If it is your second try and you have per read info"
+                               " file from the first try you can specify the per-read"
+                               " file to make the process faster. This also enables you "
+                               "to try different threshols of options (-mv, -mbq, -mq, -hr, -abq),"
+                               " include/exclude indels, include/exclude supp reads.")
+    sp_input.add_argument("--min_variant", "-mv",
+                          action="store",
+                          type=int,
+                          required=False,
+                          default=1,
+                          help=("minimum number of phased variants must a read "
+                                "have to be phased. Default is 1"))
+    sp_input.add_argument("--hapratio", "-hr",
+                          action="store",
+                          type=float,
+                          required=False,
+                          default=0.75,
+                          help=("0-1 .The maximum ratio (# of variants from one halotype over the other)"
+                                " between haplotypes to tag as H1 or H2 (H2/H1 when #variants at H1 > H2"
+                                " and H1/H2 when #variants at H2 > H1). Default is 0.75"))
+    sp_input.add_argument("--mapping_quality", "-mq",
+                          action="store",
+                          type=int,
+                          required=False,
+                          default=20,
+                          help=("An integer value to specify minimum"
+                                " read mapping quality. "
+                                "Default is 20"))
+    sp_input.add_argument("--min_base_quality", "-mbq",
+                          action="store",
+                          type=int,
+                          required=False,
+                          default=7,
+                          help=("Only include bases with this minimum base quality"
+                                ". Default is 7."))
+    sp_input.add_argument("--average_base_quality", "-abq",
+                          action="store",
+                          type=int,
+                          required=False,
+                          default=20,
+                          help=("Minimum quality that variants tagged to a haplotype "
+                                "should have compare to the other haplotype when average "
+                                "of qualities is not informative. "
+                                "This will be used "
+                                "when the average base quality of variants mapped"
+                                " to two haplotypes for one read is not informative and"
+                                " decision cannot be made "
+                                "(e.g. when 10 variants of HP1 mapped to a read "
+                                "with average quality of 30, but only one variant "
+                                "from HP2 mapped to the same read with bq=35). "
+                                "Then, instead of considering average of qualities, "
+                                "the tool will count number of variants in both haplotypes "
+                                " that meet the given average_base_quality and uses"
+                                " the counts to make decision."
+                                " Default is 20."))
+    sp_input.add_argument("--include_indels", "-ind",
+                          action="store_true",
+                          required=False,
+                          help="Also include indels for read phasing to haplotypes.")
+    sp_input.add_argument("--include_supplementary", "-is",
+                          action="store_true",
+                          required=False,
+                          help="Also include supplementary reads")
     sp_input.add_argument("--motif", "-mt",
                           action="store",
                           type=str,
@@ -1727,57 +1854,19 @@ def phase_parser(subparsers):
                           default="cpg",
                           help=("The motif you called methylation for (cpg), "
                                 "Currently just cpg."))
-    sp_input.add_argument("--hapratio", "-hr",
+    sp_input.add_argument("--window", "-w",
                           action="store",
-                          type=float,
+                          type=str,
                           required=False,
-                          default=0.75,
-                          help=("0-1 .The threshold ratio between haplotype "
-                                "to tag as H1 or H2. Default is <= 0.75"))
-    sp_input.add_argument("--min_base_quality", "-mbq",
-                          action="store",
-                          type=int,
-                          required=False,
-                          default=7,
-                          help=("Only include bases with phred score higher or"
-                                " equal than this option. Default is >=7."))
-    sp_input.add_argument("--average_base_quality", "-abq",
-                          action="store",
-                          type=int,
-                          required=False,
-                          default=20,
-                          help=("Base quality that SNVs tagged to a haplotype "
-                                "shoud have compare to the other haplotype. "
-                                "When the average base quality of SNVs mapped"
-                                " to two haplotype for one read is equal or "
-                                "decision cannot be made Base on Average bq "
-                                "(e.g. when 10 SNVs of HP1 mapped to a read "
-                                "with average quality of 30, but only one SNV "
-                                "from HP2 mapped to the same read with bq=35) "
-                                "Then, instead of quality count number of SNVs"
-                                " with quality more than average_base_quality."
-                                " Default is >=20."))
-    sp_input.add_argument("--mapping_quality", "-mq",
-                          action="store",
-                          type=int,
-                          required=False,
-                          default=20,
-                          help=("An integer value to specify thereshold for "
-                                "filtering reads based om mapping quality. "
-                                "Default is >=20"))
-    sp_input.add_argument("--min_SNV", "-ms",
-                          action="store",
-                          type=int,
-                          required=False,
-                          default=2,
-                          help=("minimum number of phased SNVs must a read "
-                                "have to be phased. Default= 2"))
+                          help=("if you want to only phase read for a region "
+                                "or chromosome. You must insert region like "
+                                "this chr1 or chr1:1000-100000."))
     sp_input.add_argument("--threads", "-t",
                           action="store",
                           type=int,
                           required=False,
                           default=4,
-                          help="Number of parallel processes")
+                          help="Number of parallel processes. Default is 4")
     sp_input.add_argument("--chunk_size", "-cs",
                           action="store",
                           type=int,
@@ -1785,10 +1874,6 @@ def phase_parser(subparsers):
                           default=100,
                           help=("Number of reads send to each proccessor. "
                                 "Default is 100"))
-    sp_input.add_argument("--include_supplementary", "-is",
-                          action="store_true",
-                          required=False,
-                          help="Also include supplementary reads")
     sp_input.add_argument("--overwrite", "-ow",
                           action="store_true",
                           required=False,
@@ -1831,21 +1916,21 @@ def methyl_call_processor_parser(subparsers):
                                  "methylation call threshold for considering a site as "
                                  "methylated, unmethylated or ambiguous in methylation call file. "
                                  "Default is nanopolish:2 which is when methylation"
-                                 " calling performed by nanopolish and llr >= 2 will be considered "
-                                 "as methylated and llr <= -2 as unmethylated, any thing "
+                                 " calling performed by nanopolish and a CpG with llr >= 2 will be considered "
+                                 "as methylated and llr <= -2 as unmethylated, anything "
                                  "in between will be considered as ambiguous call."
-                                 " For nanopolish this call thresold values are in the log_lik_ratio"
-                                 " column.\n"
-                                 "For megalodon call thresold will be delta probability (prob_methylated - prob_unmethylated) "
-                                 "which is e^mod_log_prob - (1 - e^mod_log_prob). In megalodon, "
-                                 "the default binary probability threshold to call a base modified is 0.8. "
-                                 "This will translate to a call threshold of 0.6 (0.8 - 0.2 = 0.6). "
-                                 "Therefore, at 0.6 threshold bases between 0.8 and 0.2 probability"
+                                 "For megalodon, call thresold will be delta probability "
+                                 "(prob_methylated - prob_unmethylated) "
+                                 "which is e^mod_log_prob - (1 - e^mod_log_prob). "
+                                 "For example, with a call threshold of 0.6 (0.8-0.2) CpGs "
+                                 "between 0.8 and 0.2 probability"
                                  " will be considered as ambiguous and >=0.8 as methylated "
                                  "and <=0.2 as unmethylated.\n"
+                                 "NOTE: Megalodon per-read text file must be for only 5mC CpGs "
+                                 ". Do not use per-read text file where there are predictions"
+                                 " for 2 or more modifications (e.g. 5mC and 5hmC). "
                                  "For deepsignal, as for megalodon, this call threshold is delta probability"
-                                 " (prob_methylated - prob_unmethylated). In deepsignal itself,"
-                                 " the default for this is 0.\n"
+                                 " (prob_methylated - prob_unmethylated)."
                                  " For tombo, as for nanopolish, call threshold is the llr." 
                                  " However, in tombo llr <= -threshold is methylated  and "
                                  "llr >= threshold is unmethylated. For example tombo:2 means"
@@ -1873,7 +1958,7 @@ def methyl_call_processor_parser(subparsers):
                            type=int,
                            required=False,
                            default=4,
-                           help="Number of parallel processes")
+                           help="Number of parallel processes. Default is 4")
     smp_input.add_argument("--chunk_size", "-cs",
                            action="store",
                            type=int,
@@ -1925,13 +2010,14 @@ def bam2bis_parser(subparsers):
     sbb_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
-    sbb_input.add_argument("--window", "-w",
+    sbb_input.add_argument("--mapping_quality", "-mq",
                           action="store",
-                          type=str,
+                          type=int,
                           required=False,
-                          help=("if you want to only convert reads for a "
-                                "region or chromosome. You must insert region "
-                                "like this chr1 or chr1:1000-100000."))
+                          default=20,
+                          help=("An integer value to specify minimum"
+                                " mapping quality of the read. "
+                                "Default is 20"))
     sbb_input.add_argument("--motif", "-mt",
                           action="store",
                           type=str,
@@ -1939,25 +2025,28 @@ def bam2bis_parser(subparsers):
                           default="cpg",
                           help=("The motif you called methylation for (cpg), "
                                 "Currently just cpg."))
-    sbb_input.add_argument("--mapping_quality", "-mq",
-                          action="store",
-                          type=int,
-                          required=False,
-                          default=20,
-                          help=("An integer value to specify thereshold for "
-                                "filtering reads based om mapping quality. "
-                                "Default is >=20"))
     sbb_input.add_argument("--methylation", "-met",
                           action="store_true",
                           required=False,
                           help="Output methylation call and frequency for "
                           "converted reads.")
+    sbb_input.add_argument("--include_supplementary", "-is",
+                          action="store_true",
+                          required=False,
+                          help="Also include supplementary reads")
+    sbb_input.add_argument("--window", "-w",
+                          action="store",
+                          type=str,
+                          required=False,
+                          help=("if you want to only convert reads for a "
+                                "region or chromosome. You must insert region "
+                                "like this chr1 or chr1:1000-100000."))
     sbb_input.add_argument("--threads", "-t",
                           action="store",
                           type=int,
                           required=False,
                           default=4,
-                          help="Number of parallel processes")
+                          help="Number of parallel processes. Default is 4")
     sbb_input.add_argument("--chunk_size", "-cs",
                           action="store",
                           type=int,
@@ -1965,10 +2054,6 @@ def bam2bis_parser(subparsers):
                           default=100,
                           help=("Number of reads send to each proccessor. "
                                 "Default is 100"))
-    sbb_input.add_argument("--include_supplementary", "-is",
-                          action="store_true",
-                          required=False,
-                          help="Also include supplementary reads")
     sbb_input.add_argument("--overwrite", "-ow",
                           action="store_true",
                           required=False,
@@ -1996,7 +2081,8 @@ def dma_parser(subparsers):
                             required=True,
                             help=("The path to the tab delimited input "
                                   "methylation frequency or ready input case "
-                                  "file(s). If multiple files, files must be "
+                                  "file(s) (First rwo is header which will be ignored). "
+                                  "If multiple files, files must be "
                                   "in the same directory and give the path to the directory."))
     sdma_input.add_argument("--control", "-co",
                             action="store",
@@ -2004,7 +2090,8 @@ def dma_parser(subparsers):
                             required=True,
                             help=("The path to the tab delimited input "
                                   "methylation frequency or ready input "
-                                  "control file(s). If multiple files, files must be "
+                                  "control file(s) (First rwo is header which will be ignored). " 
+                                  "If multiple files, files must be "
                                   "in the same directory and give the path to the directory."))
     sdma_input.add_argument("--out_dir", "-o",
                             action="store",
@@ -2016,7 +2103,7 @@ def dma_parser(subparsers):
                             type=str,
                             required=True,
                             help="The prefix for the output files")
-    sdma_input = sub_dma.add_argument_group("optional arguments")
+    sdma_input = sub_dma.add_argument_group("General optional arguments.")
     sdma_input.add_argument("-h", "--help",
                           action="help",
                           help="show this help message and exit")
@@ -2026,27 +2113,39 @@ def dma_parser(subparsers):
                             required=False,
                             help=("Comma seperated Columns in the methylation "
                                   "frequency files that include the following "
-                                  "information, respectively:\n"
-                                  "chromosome\tstart\tstrand\tcoverage\t"
-                                  "methylation_frequency.\n"
+                                  "information, respectively: "
+                                  "chromosome\tstart(CG_position)\tstrand\tcoverage\t"
+                                  "methylation_frequency. "
                                   "If the methylation frequency file does not "
                                   "have strand level information then just "
-                                  "enter columns number for\n"
-                                  "chromosome\tstart\tcoverage\t"
-                                  "methylation_frequency.\n"
+                                  "enter columns number for "
+                                  "chromosome\tstart(CG_position)\tcoverage\t"
+                                  "methylation_frequency. "
                                   "Default is that your input files are "
                                   "already in a format required by DSS so you "
-                                  "do not need to select any column.\n"
-                                  "If you giving as input NanoMethPhase "
-                                  "frequency files select this:"
-                                  "--columns 1,2,4,5,7\n"))
+                                  "do not need to select any column. "
+                                  "If you are giving as input NanoMethPhase "
+                                  "frequency files select this: "
+                                  "--columns 1,2,4,5,7. When strand column is given the assumption "
+                                  "is that negative strand positions are 1 bp greater than positive strand, "
+                                  "just like NanoMethPhase's frequency outputs."))
+    sdma_input.add_argument("--coverage", "-cov",
+                            action="store",
+                            type=int,
+                            default=1,
+                            required=False,
+                            help=("Minimum coverage cutoff. Default is 1. It is "
+                                  "recommended that do not filter for "
+                                  "coverage as DSS R package will take care "
+                                  "of it. For strand-level inputs, this coverage is per-strand."
+                                  " When no --columns is given, coverage option is skipped."))
     sdma_input.add_argument("--Rscript", "-rs",
                             action="store",
                             type=str,
                             required=False,
                             default="Rscript",
                             help="The path to a particular instance of "
-                                 "Rscript to use")
+                                 "Rscript to use.")
     sdma_input.add_argument("--script_file", "-sf",
                             action="store",
                             type=str,
@@ -2055,25 +2154,91 @@ def dma_parser(subparsers):
                                                     os.path.realpath(__file__)
                                                         ),
                                                  "DSS_DMA.R"),
-                            help="The path to the DSS_DMA.R script file")
-    sdma_input.add_argument("--coverage", "-cov",
+                            help="The path to the DSS_DMA.R script file."
+                            " By default the script that was shipped during nanomethphase "
+                            "installation will be used.")
+    sdma_input.add_argument("--overwrite", "-ow",
+                            action="store_true",
+                            required=False,
+                            help="If output files exist overwrite them.")
+    sdma_input = sub_dma.add_argument_group("optional arguments that will be used in "
+                                            "DSS DMLtest function.")
+    sdma_input.add_argument("--smoothing_span", "-sms",
                             action="store",
                             type=int,
-                            default=1,
+                            default=500,
                             required=False,
-                            help=("Coverage cutoff. Default is >=1. It is "
-                                  "recommended that do not filter for "
-                                  "coverage as DSS R package will take care "
-                                  "of it."))
-    sdma_input.add_argument("--dis_merge", "-dm",
+                            help=("The size of smoothing window, in "
+                                  "basepairs. Default is 500."))
+    sdma_input.add_argument("--smoothing_flag", "-smf",
                             action="store",
-                            type=int,
-                            default=1500,
+                            type=str,
+                            default="TRUE",
                             required=False,
-                            help=("When two DMRs are very close to each other "
-                                  "and the distance (in bps) is less than "
-                                  "this number, they will be merged into one. "
-                                  "Default is 1500 bps."))
+                            help=("TRUE/FALSE. A flag to indicate whether to apply smoothing"
+                                  " in estimating mean methylation levels. It is "
+                                  "recommended to use smoothing TRUE for "
+                                  "whole-genome BS-seq data, and "
+                                  "smoothing FALSE for sparser data such "
+                                  "like from RRBS or hydroxyl-methylation "
+                                  "data (TAB-seq). see -ed option and DSS R package details "
+                                  " for more information. Default is TRUE."))
+    sdma_input.add_argument("--equal_disp", "-ed",
+                            action="store",
+                            type=str,
+                            default="FALSE",
+                            required=False,
+                            help=("TRUE/FALSE. A flag to indicate whether the "
+                                  "dispersion in two groups are deemed equal or not. "
+                                  "Default is FALSE "
+                                  "and the dispersion shrinkages are performed "
+                                  "on two conditions independently. "
+                                  "More info on -ed and -smf: When there is no biological "
+                                  "replicate in one or both treatment groups, "
+                                  "users can either (1) specify "
+                                  "equal.disp TRUE, which assumes both groups "
+                                  "have the same dispersion, then the data "
+                                  "from two groups are combined and used as "
+                                  "replicates to estimate dispersion; or (2) "
+                                  "specify smoothing TRUE, which uses the "
+                                  "smoothed means (methylation levels) to "
+                                  "estimate dispersions via a shrinkage "
+                                  "estimator. This smoothing procedure uses "
+                                  "data from neighboring CpG sites as "
+                                  "\"pseudo-replicate\" for estimating "
+                                  "biological variance."))
+    sdma_input = sub_dma.add_argument_group("optional arguments that will be used in "
+                                            "DSS callDML and callDMR functions.")
+    sdma_input.add_argument("--pval_cutoff", "-pvc",
+                            action="store",
+                            type=float,
+                            default=0.001,
+                            required=False,
+                            help=("A threshold of p-values for calling DMLs and DMRs. "
+                                  "When delta is not specified, Loci with p-values less than this "
+                                  "threshold will be picked as DML and also joint to form "
+                                  "the DMRs. See DSS R package 'details' for more "
+                                  "information for this regarding DMLs and DMRs. "
+                                  "Default is 0.001."))
+    sdma_input.add_argument("--delta_cutoff", "-dc",
+                            action="store",
+                            type=float,
+                            default=0,
+                            required=False,
+                            help=("A threshold for defining DMLs and DMRs. In DML "
+                                  "detection procedure, a hypothesis test "
+                                  "that the two groups means are equal is "
+                                  "conducted at each CpG site. Here if "
+                                  "'delta' is specified, the function will "
+                                  "compute the posterior probability that the "
+                                  "difference of the means are greater than "
+                                  "delta, and then call DML and construct DMR based on "
+                                  "that. This only works when the test "
+                                  "results are from 'DMLtest', which is for "
+                                  "two-group comparison. See DSS R package for "
+                                  "more information. Default is 0."))
+    sdma_input = sub_dma.add_argument_group("optional arguments that will be used in "
+                                            "DSS callDMR function.")
     sdma_input.add_argument("--minlen", "-ml",
                             action="store",
                             type=int,
@@ -2088,72 +2253,7 @@ def dma_parser(subparsers):
                             required=False,
                             help=("Minimum number of CpG sites required for "
                                   "DMR. Default is 15."))
-    sdma_input.add_argument("--smoothing_span", "-sms",
-                            action="store",
-                            type=int,
-                            default=500,
-                            required=False,
-                            help=("The size of smoothing window, in "
-                                  "basepairs. Default is 500."))
-    sdma_input.add_argument("--smoothing_flag", "-smf",
-                            action="store",
-                            type=str,
-                            default="TRUE",
-                            required=False,
-                            help=("TRUE/FALSE. The size of smoothing window, "
-                                  "in basepairs. Default is TRUE. We "
-                                  "recommend to use smoothing=TRUE for "
-                                  "whole-genome BS-seq data, and "
-                                  "smoothing=FALSE for sparser data such "
-                                  "like from RRBS or hydroxyl-methylation "
-                                  "data (TAB-seq). If there is not biological "
-                                  "replicate, smoothing=TRUE is required. "
-                                  "Default is TRUE"))
-    sdma_input.add_argument("--equal_disp", "-ed",
-                            action="store",
-                            type=str,
-                            default="FALSE",
-                            required=False,
-                            help=("TRUE/FALSE. When there is no biological "
-                                  "replicate in one or both treatment groups, "
-                                  "users can either (1) specify "
-                                  "equal.disp=TRUE, which assumes both groups "
-                                  "have the same dispersion, then the data "
-                                  "from two groups are combined and used as "
-                                  "replicates to estimate dispersion; or (2) "
-                                  "specify smoothing=TRUE, which uses the "
-                                  "smoothed means (methylation levels) to "
-                                  "estimate dispersions via a shrinkage "
-                                  "estimator. This smoothing procedure uses "
-                                  "data from neighboring CpG sites as "
-                                  "\"pseudo-replicate\" for estimating "
-                                  "biological variance. Default is FALSE"))
-    sdma_input.add_argument("--pval_cutoff", "-pvc",
-                            action="store",
-                            type=float,
-                            default=0.001,
-                            required=False,
-                            help=("A threshold of p-values for calling DMR. "
-                                  "Loci with p-values less than this "
-                                  "threshold will be picked and joint to form "
-                                  "the DMRs. See 'details' for more "
-                                  "information. Default is 0.001"))
-    sdma_input.add_argument("--delta_cutoff", "-dc",
-                            action="store",
-                            type=float,
-                            default=0,
-                            required=False,
-                            help=("A threshold for defining DMR. In DML "
-                                  "detection procedure, a hypothesis test "
-                                  "that the two groups means are equal is "
-                                  "conducted at each CpG site. Here if "
-                                  "'delta' is specified, the function will "
-                                  "compute the posterior probability that the "
-                                  "difference of the means are greater than "
-                                  "delta, and then construct DMR based on "
-                                  "that. This only works when the test "
-                                  "results are from 'DMLtest', which is for "
-                                  "two-group comparison. Default is 0"))
+    
     sdma_input.add_argument("--pct_sig", "-pct",
                             action="store",
                             type=float,
@@ -2165,10 +2265,16 @@ def dma_parser(subparsers):
                                   "threshold. Default is 0.5. This is mainly "
                                   "used for correcting the effects of merging "
                                   "of nearby DMRs."))
-    sdma_input.add_argument("--overwrite", "-ow",
-                            action="store_true",
+    sdma_input.add_argument("--dis_merge", "-dm",
+                            action="store",
+                            type=int,
+                            default=100,
                             required=False,
-                            help="If output files exist overwrite them")
+                            help=("When two DMRs are very close to each other "
+                                  "and the distance (in bps) is less than "
+                                  "this number, they will be merged into one. "
+                                  "Default is 100 bps."
+                                  " See dma section notes for more details."))
     sub_dma.set_defaults(func=main_dma)
 
 
@@ -2177,14 +2283,9 @@ def main():
     Docstring placeholder.
     """
     parser = argparse.ArgumentParser(
-#        formatter_class=argparse.RawTextHelpFormatter,
         prog="nanomethphase",
         description="NanoMethPhase: For phasing Nanopore Reads and "
                     "Methylation")
-#        description=("phase: Phasing reads and Methylation.\n"
-#                     "methyl_call_processor: Preparing methylation call file "
-#                     "for methylation phasing.\n"
-#                     )
     subparsers = parser.add_subparsers(title="Modules")
     methyl_call_processor_parser(subparsers)
     phase_parser(subparsers)
