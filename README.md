@@ -7,7 +7,7 @@ Access [here](https://doi.org/10.1186/s13059-021-02283-5)
   
 iss5 branch Update
 =============
-Support for megalodon and deepsignal from this branch also added to the master branch (production ready branch) and a new version has been released. You can Use the master branch or the new released version for them. 
+Support for megalodon and deepsignal from this branch with some improvments added to the master branch (production ready branch) and a new version has been released. Use the master branch or the latest released version for them.  
 
 **23 Dec 2022:** Tombo-related bug fixed to correct calculation of phased methylation frequencies and converted bam2bis files when **tombo** used for methylation calling (Currently support for tombo as the methylation caller is in the iss5 branch). In tombo, negative llrs represents methylation while positive unmethylation. While, in other methylation callers positve llr or delta probability represents methylated and negative unmethylated. Therefore, the resulted frequencies for when tombo was the methylation caller represented fraction of #ummethylated_reads/#all_reads (rather than #methylated_reads/#all_reads when other methylation callers used) and in bam2bis files the color representation for metylation and unmethylation was reverse. This has been fixed to match other methylation callers.  
 
