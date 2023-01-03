@@ -16,7 +16,7 @@ dma module update (10 Oct 2022): Increased scientific notation option in the DSS
 
 Overall Workflow
 =============
-<img src="docs/images/NanoMethPhaseFlowChart.png" width="600" height="600">
+<img src="https://github.com/vahidAK/NanoMethPhase/blob/master/docs/images/NanoMethPhaseFlowChart.png" width="600" height="600">
 
 
 Table of Contents
