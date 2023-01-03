@@ -18,6 +18,7 @@ Overall Workflow
 =============
 <img src="docs/images/NanoMethPhaseFlowChart.png" width="600" height="600">
 
+
 Table of Contents
 =================
 
