@@ -26,7 +26,7 @@ Table of Contents
 * **[Example](https://github.com/vahidAK/NanoMethPhase/blob/master/README.md#example)**
   
 # Installation 
-
+This will clone the github repository and then installs NanoMethPhase depndencies in a conda environment named nanomethphase. Then you can run ```nanomethphase.py``` which is in the path you cloned the repository.  
 ```
 git clone https://github.com/vahidAK/NanoMethPhase.git
 cd NanoMethPhase
@@ -34,7 +34,7 @@ conda env create -f envs/environment.yaml
 conda activate nanomethphase
 python nanomethphase.py
 ```
-
+You can also use other package management systems to create a virtual environment and install dependencies in the [environment.yaml](https://github.com/vahidAK/NanoMethPhase/blob/master/envs/environment.yaml) file or install them in your base environment and then use ```nanomethphase.py```  
 # NanoMethPhase Modules
 ## methyl_call_processor: 
 Preparing methylation call file for methylation phasing or conversion of a bam file to whole genome bisulfite sequencing format for visualization in IGV.  
